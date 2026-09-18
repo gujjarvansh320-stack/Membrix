@@ -1,5 +1,5 @@
 // backend/src/controllers/planController.js
-import Plan from '../models/plan.js';
+import Plan from '../models/Plan.js';
 import Payment from '../models/Payment.js'; // NEW: Import Payment model
 
 // 1. Create a new custom plan
