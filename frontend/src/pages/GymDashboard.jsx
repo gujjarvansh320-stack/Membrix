@@ -16,6 +16,7 @@ import {
   Clock,
   UserPlus,
   ArrowRight,
+  Fingerprint,
 } from "lucide-react";
 import {
   BarChart,
@@ -43,55 +44,64 @@ const GymDashboard = () => {
   // ==========================================
   // 🛠️ OPTIMIZED ROLE & PERMISSION EXTRACTOR
   // ==========================================
-  const { localUser, userRole, userPermissions, displayLogo, displayName, softwarePlanTier } =
-    useMemo(() => {
-      const rawStorage = localStorage.getItem("user");
-      const parsedUser =
-        rawStorage && rawStorage !== "undefined" ? JSON.parse(rawStorage) : {};
+  const {
+    localUser,
+    userRole,
+    userPermissions,
+    displayLogo,
+    displayName,
+    softwarePlanTier,
+  } = useMemo(() => {
+    const rawStorage = localStorage.getItem("user");
+    const parsedUser =
+      rawStorage && rawStorage !== "undefined" ? JSON.parse(rawStorage) : {};
 
-      const role =
-        parsedUser?.role ||
-        parsedUser?.user?.role ||
-        parsedUser?.data?.user?.role ||
-        user?.role ||
-        "owner";
+    const role =
+      parsedUser?.role ||
+      parsedUser?.user?.role ||
+      parsedUser?.data?.user?.role ||
+      user?.role ||
+      "owner";
 
-      let perms =
-        parsedUser?.permissions ||
-        parsedUser?.user?.permissions ||
-        parsedUser?.data?.user?.permissions ||
-        user?.permissions;
-      if (!perms || perms.length === 0) {
-        perms = role === "owner" ? ["all"] : []; // Staff default to EMPTY, not full access
-      }
+    let perms =
+      parsedUser?.permissions ||
+      parsedUser?.user?.permissions ||
+      parsedUser?.data?.user?.permissions ||
+      user?.permissions;
+    if (!perms || perms.length === 0) {
+      perms = role === "owner" ? ["all"] : []; // Staff default to EMPTY, not full access
+    }
 
-      return {
-        localUser: parsedUser,
-        userRole: role,
-        userPermissions: perms,
-        displayLogo:
-          parsedUser?.gymLogo ||
-          parsedUser?.data?.user?.gymLogo ||
-          user?.gymLogo ||
-          null,
-        displayName:
-          parsedUser?.gymName ||
-          parsedUser?.data?.user?.gymName ||
-          user?.gymName ||
-          "Gym SaaS",
-        softwarePlanTier:
-          parsedUser?.softwarePlanTier ||
-          parsedUser?.data?.user?.softwarePlanTier ||
-          user?.softwarePlanTier ||
-          "Basic Plan",
-      };
-    }, [user]);
+    return {
+      localUser: parsedUser,
+      userRole: role,
+      userPermissions: perms,
+      displayLogo:
+        parsedUser?.gymLogo ||
+        parsedUser?.data?.user?.gymLogo ||
+        user?.gymLogo ||
+        null,
+      displayName:
+        parsedUser?.gymName ||
+        parsedUser?.data?.user?.gymName ||
+        user?.gymName ||
+        "Gym SaaS",
+      softwarePlanTier:
+        parsedUser?.softwarePlanTier ||
+        parsedUser?.data?.user?.softwarePlanTier ||
+        user?.softwarePlanTier ||
+        "Basic Plan",
+    };
+  }, [user]);
 
   const hasAccess = useCallback(
     (module) => {
       // 🚀 1. TIER CHECK: Block advanced features if on Basic Plan
       const advanceFeatures = ["biometrics", "automations"]; // Add future advanced tab names here
-      if (advanceFeatures.includes(module) && softwarePlanTier !== "Advance Plan") {
+      if (
+        advanceFeatures.includes(module) &&
+        softwarePlanTier !== "Advance Plan"
+      ) {
         return false;
       }
 
@@ -260,6 +270,14 @@ const GymDashboard = () => {
 
           {userRole === "owner" && (
             <>
+              {hasAccess("biometrics") && (
+                <button
+                  onClick={() => setActiveView("biometrics")}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeView === "biometrics" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800"}`}
+                >
+                  <Fingerprint size={20} /> Biometric Attendance
+                </button>
+              )}
               <button
                 onClick={() => setActiveView("staff")}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeView === "staff" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800"}`}
@@ -303,7 +321,9 @@ const GymDashboard = () => {
                         ? "Transfer Membership"
                         : activeView === "staff"
                           ? "Staff Management"
-                          : "Settings"}
+                          : activeView === "biometrics" // 👈 Add this check
+                            ? "Biometric Attendance & Logs"
+                            : "Settings"}
           </h1>
           <div className="flex items-center gap-4">
             {userRole !== "trainer" && (
@@ -573,6 +593,12 @@ const GymDashboard = () => {
             <StaffManager />
           ) : activeView === "settings" && userRole === "owner" ? (
             <SettingsTab />
+          ) : activeView === "biometrics" && hasAccess("biometrics") ? (
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center h-64">
+              <Fingerprint size={48} className="text-blue-500 mb-4" />
+              <h2 className="text-xl font-bold text-gray-800">Biometric Sync Active</h2>
+              <p className="text-gray-500 mt-2">Connect your ZKTeco/eSSL machine via the local bridge script.</p>
+            </div>
           ) : (
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
               <h2 className="text-xl font-bold text-gray-800">
