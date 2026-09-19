@@ -10,21 +10,23 @@ const generateToken = (id) => {
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password, phone, role, gymId, plan, permissions, orgType } = req.body;
+    // 🚀 1. ADD softwarePlanTier to the extracted fields
+    const { name, email, password, phone, role, gymId, plan, permissions, orgType, softwarePlanTier } = req.body;
     if (!name || !email || !password) return res.status(400).json({ success: false, message: "Required fields missing" });
 
-    // 1. Create base user (authService will likely drop orgType here)
     const user = await createUser({ name, email, password, phone, role, gymId, plan });
     
-    // 2. ✅ FORCE SAVE permissions and orgType directly to MongoDB
     const finalPermissions = permissions || ['all'];
     const finalOrgType = orgType || 'gym';
+    const finalSoftwarePlanTier = softwarePlanTier || 'Basic Plan'; // 🚀 2. Define the tier fallback
     
+    // 🚀 3. FORCE SAVE the tier directly to MongoDB
     await User.findByIdAndUpdate(
       user._id, 
       { 
         permissions: finalPermissions,
-        orgType: finalOrgType // 👈 Explicitly forces MongoDB to save the business type
+        orgType: finalOrgType,
+        softwarePlanTier: finalSoftwarePlanTier 
       }
     );
 
@@ -40,7 +42,8 @@ export const register = async (req, res) => {
           gymLogo: user.gymLogo || '', phone: user.phone || '', plan: user.plan || 'basic',
           address: user.address || '', termsAndConditions: user.termsAndConditions || '',
           permissions: finalPermissions,
-          orgType: finalOrgType // 👈 Injects into local storage for immediate routing
+          orgType: finalOrgType,
+          softwarePlanTier: finalSoftwarePlanTier // 🚀 4. Inject into frontend local storage
         },
       },
     });
@@ -48,7 +51,6 @@ export const register = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
-
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
