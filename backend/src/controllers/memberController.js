@@ -34,21 +34,24 @@
 //     const { 
 //       gymId, name, mobile, email, dob, gender, address, 
 //       aadharNumber, expiryDate, amountPaid, couponCode, planName, 
-//       discountAmount: frontendDiscount 
+//       discountAmount: frontendDiscount,
+//       paymentMode, pendingBalance, pendingDueDate // 👈 Extracted from frontend
 //     } = req.body;
     
-//     // ✅ UPDATED LINE: Accepts Multer file OR direct string URL from phone sync
 //     const finalPhotoUrl = req.file ? req.file.path : (req.body.photoUrl || '');
 
 //     const newMember = await Member.create({ 
 //       gymId, name, mobile, email, dob: dob ? new Date(dob) : null, gender, address, 
 //       aadharNumber, expiryDate, 
-//       photoUrl: finalPhotoUrl, // ✅ Use the new variable here
+//       photoUrl: finalPhotoUrl, 
 //       planName,
-//       lastPaymentType: 'Registration'
+//       lastPaymentType: 'Registration',
+//       pendingBalance: Number(pendingBalance) || 0, // 👈 Saved to Member
+//       pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : null 
 //     });
     
-//     if (amountPaid && Number(amountPaid) > 0) {
+//     // Create record if they paid something OR if they owe something
+//     if ((amountPaid && Number(amountPaid) > 0) || (pendingBalance && Number(pendingBalance) > 0)) {
 //       let finalDiscount = Number(frontendDiscount) || 0;
 //       if (!finalDiscount && couponCode) {
 //         finalDiscount = await calculateDiscount(gymId, couponCode, Number(amountPaid) + finalDiscount);
@@ -57,11 +60,14 @@
 //       await Payment.create({
 //         gymId, 
 //         memberId: newMember._id, 
-//         amount: Number(amountPaid), 
+//         amount: Number(amountPaid) || 0, 
 //         discountAmount: finalDiscount, 
 //         paymentType: 'Registration',
 //         couponCode: couponCode || '',
-//         planName: planName || 'Custom Plan'
+//         planName: planName || 'Custom Plan',
+//         paymentMode: paymentMode || 'Cash', // 👈 Saved to Ledger
+//         pendingBalance: Number(pendingBalance) || 0, // 👈 Saved to Ledger
+//         pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : null
 //       });
 //     }
 
@@ -78,7 +84,6 @@
 
 //     let query = { gymId };
 
-//     // 🔒 STRICT ROLE-BASED FILTER: Only fetch trainer's assigned members
 //     if (req.user && req.user.role && req.user.role.toLowerCase() === 'trainer') {
 //       query.assignedTrainer = req.user._id;
 //     }
@@ -91,12 +96,11 @@
 
 //     if (search) {
 //       query.$or = [
-//         { name: { $regex: search, $options: 'i' } },
-//         { mobile: { $regex: search, $options: 'i' } }
+//         { name: { $regex: search,$options: 'i' } },
+//         { mobile: { $regex: search,$options: 'i' } }
 //       ];
 //     }
 
-//     // ✅ Populate the trainer's name so it shows up in the frontend table
 //     const members = await Member.find(query)
 //       .populate('assignedTrainer', 'name')
 //       .sort({ expiryDate: 1 });
@@ -139,7 +143,7 @@
 //     const inactiveClientsCount = await Member.countDocuments({ gymId, expiryDate: { $lt: currentDate } });
 //     const totalClientsCount = activeClientsCount + inactiveClientsCount;
 
-//     const paymentsInRange = await Payment.find({ gymId, paymentDate: { $gte: start, $lte: end } });
+//     const paymentsInRange = await Payment.find({ gymId, paymentDate: { $gte: start,$lte: end } });
     
 //     const salesCollected = paymentsInRange.reduce((acc, p) => acc + (p.amount || 0), 0);
 //     const newClientsCount = paymentsInRange.filter(p => p.paymentType === 'Registration').length;
@@ -310,8 +314,7 @@
 //     );
 
 //     await Payment.updateMany(
-//       { memberId: member._id, pendingBalance: { $gt: 0 } },
-//       { $set: { pendingBalance: newPendingBalance } }
+//       { memberId: member._id, pendingBalance: { $gt: 0 } },       {$set: { pendingBalance: newPendingBalance } }
 //     );
 
 //     const newPayment = await Payment.create({
@@ -459,7 +462,6 @@
 //   try {
 //     const { gymId } = req.query;
     
-//     // ✅ 🔒 STRICT ROLE-BASED FILTER for Follow-Ups too!
 //     const userRole = req.user?.role?.toLowerCase();
 //     const userId = req.user?._id;
 
@@ -494,6 +496,53 @@
 //   }
 // };
 
+// // Temporary in-memory store for phone sync (can also use Redis or MongoDB)
+// const tempPhotoStore = new Map();
+
+// export const uploadTempPhoto = async (req, res) => {
+//   try {
+//     const { sessionId } = req.params;
+//     if (!req.file) {
+//       return res.status(400).json({ message: "No photo uploaded" });
+//     }
+//     // Store the uploaded Cloudinary URL against the session ID
+//     tempPhotoStore.set(sessionId, req.file.path);
+    
+//     // Automatically clear it from memory after 10 minutes to prevent memory leaks
+//     setTimeout(() => tempPhotoStore.delete(sessionId), 10 * 60 * 1000);
+
+//     res.status(200).json({ message: "Photo uploaded successfully", photoUrl: req.file.path });
+//   } catch (error) {
+//     res.status(500).json({ message: "Failed to upload temp photo", error: error.message });
+//   }
+// };
+
+// export const checkTempPhoto = async (req, res) => {
+//   try {
+//     const { sessionId } = req.params;
+//     const photoUrl = tempPhotoStore.get(sessionId);
+
+//     if (photoUrl) {
+//       return res.status(200).json({ uploaded: true, photoUrl });
+//     } else {
+//       // Return 404 so the frontend knows it's not ready yet
+//       return res.status(404).json({ uploaded: false });
+//     }
+//   } catch (error) {
+//     res.status(500).json({ message: "Error checking temp photo status", error: error.message });
+//   }
+// };
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -505,6 +554,9 @@ import Coupon from '../models/Coupon.js';
 import Enquiry from '../models/Enquiry.js';
 import mongoose from 'mongoose'; 
 import { v2 as cloudinary } from 'cloudinary';
+
+// Temporary in-memory store for phone sync
+const tempPhotoStore = new Map();
 
 const calculateDiscount = async (gymId, couponCode, basePrice) => {
   if (!couponCode || !basePrice || basePrice <= 0) return 0;
@@ -535,7 +587,7 @@ export const registerMember = async (req, res) => {
       gymId, name, mobile, email, dob, gender, address, 
       aadharNumber, expiryDate, amountPaid, couponCode, planName, 
       discountAmount: frontendDiscount,
-      paymentMode, pendingBalance, pendingDueDate // 👈 Extracted from frontend
+      paymentMode, pendingBalance, pendingDueDate // 👈 Fixed Database Save Logic
     } = req.body;
     
     const finalPhotoUrl = req.file ? req.file.path : (req.body.photoUrl || '');
@@ -546,11 +598,11 @@ export const registerMember = async (req, res) => {
       photoUrl: finalPhotoUrl, 
       planName,
       lastPaymentType: 'Registration',
-      pendingBalance: Number(pendingBalance) || 0, // 👈 Saved to Member
+      pendingBalance: Number(pendingBalance) || 0, // 👈 Saved to Member DB
       pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : null 
     });
     
-    // Create record if they paid something OR if they owe something
+    // Create payment record if they paid something OR if they owe something
     if ((amountPaid && Number(amountPaid) > 0) || (pendingBalance && Number(pendingBalance) > 0)) {
       let finalDiscount = Number(frontendDiscount) || 0;
       if (!finalDiscount && couponCode) {
@@ -565,8 +617,8 @@ export const registerMember = async (req, res) => {
         paymentType: 'Registration',
         couponCode: couponCode || '',
         planName: planName || 'Custom Plan',
-        paymentMode: paymentMode || 'Cash', // 👈 Saved to Ledger
-        pendingBalance: Number(pendingBalance) || 0, // 👈 Saved to Ledger
+        paymentMode: paymentMode || 'Cash', // 👈 Saved to Payment DB (Fixes the UPI bug)
+        pendingBalance: Number(pendingBalance) || 0, // 👈 Saved to Payment DB
         pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : null
       });
     }
@@ -996,19 +1048,18 @@ export const getFollowUps = async (req, res) => {
   }
 };
 
-// Temporary in-memory store for phone sync (can also use Redis or MongoDB)
-const tempPhotoStore = new Map();
-
+// ==========================================
+// NEW ENDPOINTS: Phone Photo Sync Handlers
+// ==========================================
 export const uploadTempPhoto = async (req, res) => {
   try {
     const { sessionId } = req.params;
     if (!req.file) {
       return res.status(400).json({ message: "No photo uploaded" });
     }
-    // Store the uploaded Cloudinary URL against the session ID
+    
     tempPhotoStore.set(sessionId, req.file.path);
     
-    // Automatically clear it from memory after 10 minutes to prevent memory leaks
     setTimeout(() => tempPhotoStore.delete(sessionId), 10 * 60 * 1000);
 
     res.status(200).json({ message: "Photo uploaded successfully", photoUrl: req.file.path });
@@ -1025,7 +1076,6 @@ export const checkTempPhoto = async (req, res) => {
     if (photoUrl) {
       return res.status(200).json({ uploaded: true, photoUrl });
     } else {
-      // Return 404 so the frontend knows it's not ready yet
       return res.status(404).json({ uploaded: false });
     }
   } catch (error) {
