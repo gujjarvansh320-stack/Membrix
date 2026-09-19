@@ -34,24 +34,18 @@
 //     const { 
 //       gymId, name, mobile, email, dob, gender, address, 
 //       aadharNumber, expiryDate, amountPaid, couponCode, planName, 
-//       discountAmount: frontendDiscount,
-//       pendingBalance,
-//       pendingDueDate,
-//       paymentMode,
-//       assignedTrainer, fitnessGoal, goalProgress // ✅ Extracted new fields
+//       discountAmount: frontendDiscount 
 //     } = req.body;
     
-//     const photoUrl = req.file ? req.file.path : '';
+//     // ✅ UPDATED LINE: Accepts Multer file OR direct string URL from phone sync
+//     const finalPhotoUrl = req.file ? req.file.path : (req.body.photoUrl || '');
 
 //     const newMember = await Member.create({ 
 //       gymId, name, mobile, email, dob: dob ? new Date(dob) : null, gender, address, 
-//       aadharNumber, expiryDate, photoUrl, planName,
-//       lastPaymentType: 'Registration', 
-//       pendingBalance: Number(pendingBalance) || 0,
-//       pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : null,
-//       assignedTrainer: assignedTrainer || null,
-//       fitnessGoal: fitnessGoal || 'General Fitness',
-//       goalProgress: goalProgress || '0%'
+//       aadharNumber, expiryDate, 
+//       photoUrl: finalPhotoUrl, // ✅ Use the new variable here
+//       planName,
+//       lastPaymentType: 'Registration'
 //     });
     
 //     if (amountPaid && Number(amountPaid) > 0) {
@@ -65,12 +59,9 @@
 //         memberId: newMember._id, 
 //         amount: Number(amountPaid), 
 //         discountAmount: finalDiscount, 
-//         pendingBalance: Number(pendingBalance) || 0,
-//         pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : null,
 //         paymentType: 'Registration',
 //         couponCode: couponCode || '',
-//         planName: planName || 'Custom Plan',
-//         paymentMode: paymentMode || 'Cash' 
+//         planName: planName || 'Custom Plan'
 //       });
 //     }
 
@@ -83,31 +74,19 @@
 // export const getActiveMembers = async (req, res) => {
 //   try {
 //     const { gymId, search, status } = req.query;
-    
-//     // ✅ Extract the logged-in user's data (make sure your auth middleware sets req.user)
-//     const userRole = req.user?.role?.toLowerCase(); 
-//     const userId = req.user?._id;
-
-//     const startOfToday = new Date();
-//     startOfToday.setHours(0, 0, 0, 0);
-
-//     const sevenDaysFromNow = new Date();
-//     sevenDaysFromNow.setDate(startOfToday.getDate() + 7);
-//     sevenDaysFromNow.setHours(23, 59, 59, 999);
+//     const currentDate = new Date();
 
 //     let query = { gymId };
 
-//     // ✅ ISOLATION LOGIC: If the user is a trainer, force the query to only show their assigned members
-//     if (userRole === 'trainer') {
-//       query.assignedTrainer = userId;
+//     // 🔒 STRICT ROLE-BASED FILTER: Only fetch trainer's assigned members
+//     if (req.user && req.user.role && req.user.role.toLowerCase() === 'trainer') {
+//       query.assignedTrainer = req.user._id;
 //     }
 
 //     if (status === 'expired') {
-//       query.expiryDate = { $lt: startOfToday };
+//       query.expiryDate = { $lt: currentDate };
 //     } else if (status === 'active') {
-//       query.expiryDate = { $gte: startOfToday };
-//     } else if (status === 'expiring_soon') {
-//       query.expiryDate = { $gte: startOfToday, $lte: sevenDaysFromNow };
+//       query.expiryDate = { $gte: currentDate };
 //     }
 
 //     if (search) {
@@ -117,7 +96,7 @@
 //       ];
 //     }
 
-//     // ✅ Populate the trainer's name so it shows up in the frontend table!
+//     // ✅ Populate the trainer's name so it shows up in the frontend table
 //     const members = await Member.find(query)
 //       .populate('assignedTrainer', 'name')
 //       .sort({ expiryDate: 1 });
@@ -480,7 +459,7 @@
 //   try {
 //     const { gymId } = req.query;
     
-//     // ✅ Apply the same trainer restriction to Follow-Ups so they don't see everyone's dues/expirations
+//     // ✅ 🔒 STRICT ROLE-BASED FILTER for Follow-Ups too!
 //     const userRole = req.user?.role?.toLowerCase();
 //     const userId = req.user?._id;
 
@@ -497,12 +476,12 @@
 //     const expiringMembers = await Member.find({
 //       ...baseQuery,
 //       expiryDate: { $lte: sevenDaysFromNow }
-//     });
+//     }).populate('assignedTrainer', 'name');
 
 //     const pendingDues = await Member.find({
 //       ...baseQuery,
 //       pendingBalance: { $gt: 0 }
-//     });
+//     }).populate('assignedTrainer', 'name');
 
 //     const enquiries = await Enquiry.find({
 //       gymId,
@@ -514,9 +493,6 @@
 //     res.status(500).json({ message: 'Error fetching follow-ups', error: error.message });
 //   }
 // };
-
-
-
 
 
 
@@ -558,21 +534,24 @@ export const registerMember = async (req, res) => {
     const { 
       gymId, name, mobile, email, dob, gender, address, 
       aadharNumber, expiryDate, amountPaid, couponCode, planName, 
-      discountAmount: frontendDiscount 
+      discountAmount: frontendDiscount,
+      paymentMode, pendingBalance, pendingDueDate // 👈 Extracted from frontend
     } = req.body;
     
-    // ✅ UPDATED LINE: Accepts Multer file OR direct string URL from phone sync
     const finalPhotoUrl = req.file ? req.file.path : (req.body.photoUrl || '');
 
     const newMember = await Member.create({ 
       gymId, name, mobile, email, dob: dob ? new Date(dob) : null, gender, address, 
       aadharNumber, expiryDate, 
-      photoUrl: finalPhotoUrl, // ✅ Use the new variable here
+      photoUrl: finalPhotoUrl, 
       planName,
-      lastPaymentType: 'Registration'
+      lastPaymentType: 'Registration',
+      pendingBalance: Number(pendingBalance) || 0, // 👈 Saved to Member
+      pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : null 
     });
     
-    if (amountPaid && Number(amountPaid) > 0) {
+    // Create record if they paid something OR if they owe something
+    if ((amountPaid && Number(amountPaid) > 0) || (pendingBalance && Number(pendingBalance) > 0)) {
       let finalDiscount = Number(frontendDiscount) || 0;
       if (!finalDiscount && couponCode) {
         finalDiscount = await calculateDiscount(gymId, couponCode, Number(amountPaid) + finalDiscount);
@@ -581,11 +560,14 @@ export const registerMember = async (req, res) => {
       await Payment.create({
         gymId, 
         memberId: newMember._id, 
-        amount: Number(amountPaid), 
+        amount: Number(amountPaid) || 0, 
         discountAmount: finalDiscount, 
         paymentType: 'Registration',
         couponCode: couponCode || '',
-        planName: planName || 'Custom Plan'
+        planName: planName || 'Custom Plan',
+        paymentMode: paymentMode || 'Cash', // 👈 Saved to Ledger
+        pendingBalance: Number(pendingBalance) || 0, // 👈 Saved to Ledger
+        pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : null
       });
     }
 
@@ -602,7 +584,6 @@ export const getActiveMembers = async (req, res) => {
 
     let query = { gymId };
 
-    // 🔒 STRICT ROLE-BASED FILTER: Only fetch trainer's assigned members
     if (req.user && req.user.role && req.user.role.toLowerCase() === 'trainer') {
       query.assignedTrainer = req.user._id;
     }
@@ -615,12 +596,11 @@ export const getActiveMembers = async (req, res) => {
 
     if (search) {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { mobile: { $regex: search, $options: 'i' } }
+        { name: { $regex: search,$options: 'i' } },
+        { mobile: { $regex: search,$options: 'i' } }
       ];
     }
 
-    // ✅ Populate the trainer's name so it shows up in the frontend table
     const members = await Member.find(query)
       .populate('assignedTrainer', 'name')
       .sort({ expiryDate: 1 });
@@ -663,7 +643,7 @@ export const getMemberStats = async (req, res) => {
     const inactiveClientsCount = await Member.countDocuments({ gymId, expiryDate: { $lt: currentDate } });
     const totalClientsCount = activeClientsCount + inactiveClientsCount;
 
-    const paymentsInRange = await Payment.find({ gymId, paymentDate: { $gte: start, $lte: end } });
+    const paymentsInRange = await Payment.find({ gymId, paymentDate: { $gte: start,$lte: end } });
     
     const salesCollected = paymentsInRange.reduce((acc, p) => acc + (p.amount || 0), 0);
     const newClientsCount = paymentsInRange.filter(p => p.paymentType === 'Registration').length;
@@ -834,8 +814,7 @@ export const clearDues = async (req, res) => {
     );
 
     await Payment.updateMany(
-      { memberId: member._id, pendingBalance: { $gt: 0 } },
-      { $set: { pendingBalance: newPendingBalance } }
+      { memberId: member._id, pendingBalance: { $gt: 0 } },       {$set: { pendingBalance: newPendingBalance } }
     );
 
     const newPayment = await Payment.create({
@@ -983,7 +962,6 @@ export const getFollowUps = async (req, res) => {
   try {
     const { gymId } = req.query;
     
-    // ✅ 🔒 STRICT ROLE-BASED FILTER for Follow-Ups too!
     const userRole = req.user?.role?.toLowerCase();
     const userId = req.user?._id;
 
@@ -1015,5 +993,42 @@ export const getFollowUps = async (req, res) => {
     res.status(200).json({ expiringMembers, pendingDues, enquiries });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching follow-ups', error: error.message });
+  }
+};
+
+// Temporary in-memory store for phone sync (can also use Redis or MongoDB)
+const tempPhotoStore = new Map();
+
+export const uploadTempPhoto = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    if (!req.file) {
+      return res.status(400).json({ message: "No photo uploaded" });
+    }
+    // Store the uploaded Cloudinary URL against the session ID
+    tempPhotoStore.set(sessionId, req.file.path);
+    
+    // Automatically clear it from memory after 10 minutes to prevent memory leaks
+    setTimeout(() => tempPhotoStore.delete(sessionId), 10 * 60 * 1000);
+
+    res.status(200).json({ message: "Photo uploaded successfully", photoUrl: req.file.path });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to upload temp photo", error: error.message });
+  }
+};
+
+export const checkTempPhoto = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const photoUrl = tempPhotoStore.get(sessionId);
+
+    if (photoUrl) {
+      return res.status(200).json({ uploaded: true, photoUrl });
+    } else {
+      // Return 404 so the frontend knows it's not ready yet
+      return res.status(404).json({ uploaded: false });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error checking temp photo status", error: error.message });
   }
 };
