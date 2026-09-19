@@ -198,8 +198,19 @@ export const updateMember = async (req, res) => {
     const { id } = req.params;
     const updateData = { ...req.body };
 
-    if (updateData.dob === '' || updateData.dob === 'null' || updateData.dob === 'undefined') {
+    // 🚀 FIX 1: Prevent MongoDB crash for modifying immutable fields
+    delete updateData._id;
+    delete updateData.gymId;
+
+    // 🚀 FIX 2: Prevent CastErrors for empty strings sent by FormData
+    if (!updateData.dob || updateData.dob === 'null' || updateData.dob === 'undefined') {
       updateData.dob = null;
+    }
+    if (!updateData.assignedTrainer || updateData.assignedTrainer === '' || updateData.assignedTrainer === 'null') {
+      updateData.assignedTrainer = null;
+    }
+    if (updateData.pendingBalance === '') {
+      updateData.pendingBalance = 0;
     }
 
     if (req.file) {
@@ -216,14 +227,18 @@ export const updateMember = async (req, res) => {
             const publicId = publicIdWithExt.substring(0, publicIdWithExt.lastIndexOf('.'));
             await cloudinary.uploader.destroy(publicId);
           }
-        } catch (cloudErr) {}
+        } catch (cloudErr) {
+          console.warn("Could not delete old photo from Cloudinary:", cloudErr);
+        }
       }
     }
 
     const updatedMember = await Member.findByIdAndUpdate(id, updateData, { new: true });
     if (!updatedMember) return res.status(404).json({ message: 'Member not found' });
+    
     res.status(200).json(updatedMember);
   } catch (error) {
+    console.error("Update Member Error:", error);
     res.status(500).json({ message: 'Error updating member', error: error.message });
   }
 };
