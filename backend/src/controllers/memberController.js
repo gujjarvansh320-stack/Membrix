@@ -95,8 +95,16 @@ export const getActiveMembers = async (req, res) => {
       query.expiryDate = { $lt: currentDate };
     } else if (status === 'active') {
       query.expiryDate = { $gte: currentDate };
+    } else if (status === 'expiring_soon' || status === 'Expiring Soon') {
+      // (Ensure this string matches exactly what your frontend tab sends in the API call)
+      const sevenDaysFromNow = new Date();
+      sevenDaysFromNow.setDate(currentDate.getDate() + 7);
+      
+      query.expiryDate = { 
+        $gte: currentDate,       // Must not be expired yet
+        $lte: sevenDaysFromNow   // Must expire within the next 7 days
+      };
     }
-
     if (search) {
       query.$or = [
         { name: { $regex: search,$options: 'i' } },
