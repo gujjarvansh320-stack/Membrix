@@ -43,7 +43,7 @@ const GymDashboard = () => {
   // ==========================================
   // 🛠️ OPTIMIZED ROLE & PERMISSION EXTRACTOR
   // ==========================================
-  const { localUser, userRole, userPermissions, displayLogo, displayName } =
+  const { localUser, userRole, userPermissions, displayLogo, displayName, softwarePlanTier } =
     useMemo(() => {
       const rawStorage = localStorage.getItem("user");
       const parsedUser =
@@ -79,17 +79,29 @@ const GymDashboard = () => {
           parsedUser?.data?.user?.gymName ||
           user?.gymName ||
           "Gym SaaS",
+        softwarePlanTier:
+          parsedUser?.softwarePlanTier ||
+          parsedUser?.data?.user?.softwarePlanTier ||
+          user?.softwarePlanTier ||
+          "Basic Plan",
       };
     }, [user]);
 
   const hasAccess = useCallback(
     (module) => {
+      // 🚀 1. TIER CHECK: Block advanced features if on Basic Plan
+      const advanceFeatures = ["biometrics", "automations"]; // Add future advanced tab names here
+      if (advanceFeatures.includes(module) && softwarePlanTier !== "Advance Plan") {
+        return false;
+      }
+
+      // 2. ROLE CHECK: Proceed with normal staff permissions
       if (userRole === "owner" || userRole === "admin") return true;
       return (
         userPermissions.includes("all") || userPermissions.includes(module)
       );
     },
-    [userRole, userPermissions],
+    [userRole, userPermissions, softwarePlanTier], // 👈 softwarePlanTier added to dependencies
   );
 
   const getDefaultView = () => {
