@@ -21,7 +21,7 @@
 //     expiryDate: "",
 //     amountPaid: "",
 //     photo: null,
-//     photoUrl: "", // ✅ ADDED: To store the URL if taken via phone
+//     photoUrl: "", 
 //     dueDate: "",
 //     paymentMode: "Cash",
 //   });
@@ -32,7 +32,7 @@
 //   const [isCameraOpen, setIsCameraOpen] = useState(false);
 //   const [photoPreview, setPhotoPreview] = useState(null);
 
-//   // ✅ NEW: Phone Sync States
+//   // Phone Sync States
 //   const [isQrOpen, setIsQrOpen] = useState(false);
 //   const [syncSessionId, setSyncSessionId] = useState("");
 //   const [isPolling, setIsPolling] = useState(false);
@@ -70,21 +70,38 @@
 //     }
 //   }, [isOpen, user]);
 
-//   // ✅ NEW: Polling Hook to check for phone upload
+//   // ✅ FIXED: Polling Hook with Timeout and Silent 404 Handling
 //   useEffect(() => {
 //     let interval;
+//     let attempts = 0;
+//     const MAX_ATTEMPTS = 150; // Automatically stop polling after 5 minutes (150 * 2s)
+
 //     if (isPolling && syncSessionId) {
 //       interval = setInterval(async () => {
+//         attempts++;
+//         if (attempts >= MAX_ATTEMPTS) {
+//           setIsPolling(false);
+//           setIsQrOpen(false);
+//           setError("Phone sync timed out. Please try again.");
+//           clearInterval(interval);
+//           return;
+//         }
+
 //         try {
-//           const response = await api.get(`/members/temp-photo/${syncSessionId}`);
-//           if (response.data?.uploaded) {
+//           // Tell Axios NOT to throw an error for a 404 (Not Found yet) response
+//           const response = await api.get(`/members/temp-photo/${syncSessionId}`, {
+//             validateStatus: (status) => status >= 200 && status < 500
+//           });
+          
+//           if (response.status === 200 && response.data?.uploaded) {
 //             setPhotoPreview(response.data.photoUrl);
 //             setFormData((prev) => ({ ...prev, photo: null, photoUrl: response.data.photoUrl }));
 //             setIsPolling(false);
 //             setIsQrOpen(false);
 //           }
 //         } catch (err) {
-//           console.error("Polling error:", err);
+//           // Only logs actual server crashes or network disconnections now
+//           console.error("Polling network error:", err);
 //         }
 //       }, 2000);
 //     }
@@ -176,12 +193,11 @@
 //     if (imageSrc) {
 //       setPhotoPreview(imageSrc);
 //       const file = dataURLtoFile(imageSrc, "webcam-capture.jpg");
-//       setFormData((prevData) => ({ ...prevData, photo: file, photoUrl: "" })); // Clear URL if camera used
+//       setFormData((prevData) => ({ ...prevData, photo: file, photoUrl: "" }));
 //       setIsCameraOpen(false);
 //     }
 //   }, []);
 
-//   // ✅ NEW: Start Phone Sync Session
 //   const startPhoneSync = () => {
 //     const newSessionId = `gym_reg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 //     setSyncSessionId(newSessionId);
@@ -219,7 +235,7 @@
 //   const handleFileChange = (e) => {
 //     const file = e.target.files[0];
 //     if (file) {
-//       setFormData({ ...formData, photo: file, photoUrl: "" }); // Clear URL if file uploaded
+//       setFormData({ ...formData, photo: file, photoUrl: "" });
 //       setPhotoPreview(URL.createObjectURL(file));
 //     }
 //   };
@@ -231,7 +247,6 @@
 //     setLoading(true);
 //     setError("");
 
-//     // ✅ UPDATE: Accept either photo (File) or photoUrl (String from phone)
 //     if (!formData.photo && !formData.photoUrl) {
 //       setError("Please capture or upload a photo first.");
 //       setLoading(false);
@@ -259,7 +274,6 @@
 //     submitData.append("pendingDueDate", pendingBalance > 0 ? formData.dueDate : "");
 //     submitData.append("paymentMode", formData.paymentMode);
 
-//     // ✅ UPDATE: Append the correct image format
 //     if (formData.photo) {
 //       submitData.append("photo", formData.photo);
 //     } else if (formData.photoUrl) {
@@ -293,7 +307,6 @@
 //         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
 //           {error && <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm font-medium">{error}</div>}
 
-//           {/* ✅ UPDATED PHOTO UPLOAD SECTION */}
 //           <div className="space-y-3">
 //             <label className="block text-sm font-semibold text-gray-700">Member Photo</label>
             
@@ -467,6 +480,8 @@
 
 
 
+
+
 // src/components/AddMemberModal.jsx
 import { useState, useContext, useRef, useCallback, useEffect } from "react";
 import { X, UploadCloud, Camera, Tag, Smartphone, RefreshCw } from "lucide-react";
@@ -539,7 +554,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     }
   }, [isOpen, user]);
 
-  // ✅ FIXED: Polling Hook with Timeout and Silent 404 Handling
+  // Polling Hook with Timeout and Silent 404 Handling
   useEffect(() => {
     let interval;
     let attempts = 0;
@@ -557,7 +572,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         }
 
         try {
-          // Tell Axios NOT to throw an error for a 404 (Not Found yet) response
           const response = await api.get(`/members/temp-photo/${syncSessionId}`, {
             validateStatus: (status) => status >= 200 && status < 500
           });
@@ -569,7 +583,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
             setIsQrOpen(false);
           }
         } catch (err) {
-          // Only logs actual server crashes or network disconnections now
           console.error("Polling network error:", err);
         }
       }, 2000);
@@ -723,7 +736,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     }
 
     const currentGymId = getOwnerGymId();
-    const calculatedDiscount = Math.max(0, basePrice - Number(formData.amountPaid));
 
     const submitData = new FormData();
     submitData.append("name", formData.name);
@@ -738,8 +750,11 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     submitData.append("gymId", currentGymId);
     submitData.append("couponCode", couponCode);
     submitData.append("planName", selectedPlanName);
-    submitData.append("discountAmount", calculatedDiscount);
+    
+    // ✅ FIXED: Strictly map the true coupon discount and pending balance
+    submitData.append("discountAmount", discountAmount);
     submitData.append("pendingBalance", pendingBalance);
+    
     submitData.append("pendingDueDate", pendingBalance > 0 ? formData.dueDate : "");
     submitData.append("paymentMode", formData.paymentMode);
 
