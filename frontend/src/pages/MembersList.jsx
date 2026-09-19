@@ -692,7 +692,7 @@ const MembersList = ({ refreshKey }) => {
 
               <div className="flex gap-2 justify-end pt-5 border-t mt-5 shrink-0">
                 <button type="submit" disabled={editLoading} className="w-full bg-blue-600 text-white rounded-md text-base font-bold py-3 hover:bg-blue-700 transition disabled:opacity-50">
-                  {editLoading ? 'Saving...' : (userRole === 'trainer' ? 'Update Client Database' : 'Save All Changes')}
+                  {editLoading ? 'Saving...' : (userRole === 'trainer' ? 'Update Client Report Card' : 'Save All Changes')}
                 </button>
               </div>
             </form>
