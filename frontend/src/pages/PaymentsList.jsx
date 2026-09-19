@@ -16,7 +16,13 @@
 //   const [currentPayment, setCurrentPayment] = useState(null);
 //   const [editAmount, setEditAmount] = useState('');
 //   const [editType, setEditType] = useState('');
-//   const [editMode, setEditMode] = useState('Cash'); 
+//   const [editMode, setEditMode] = useState('Cash');
+
+//   // Clear Dues Modal State
+//   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+//   const [clearingPayment, setClearingPayment] = useState(null);
+//   const [clearAmount, setClearAmount] = useState('');
+//   const [clearMode, setClearMode] = useState('Cash');
 
 //   // ✅ BULLETPROOF GYM ID EXTRACTOR FOR STAFF
 //   const getOwnerGymId = () => {
@@ -37,7 +43,7 @@
 
 //   const fetchPayments = async () => {
 //     try {
-//       const gymId = getOwnerGymId(); // ✅ Now correctly fetches the owner's gymId
+//       const gymId = getOwnerGymId();
 //       const response = await api.get(`/members/payments/all?gymId=${gymId}`);
 //       setPayments(response.data);
 //       setLoading(false);
@@ -88,6 +94,36 @@
 //     }
 //   };
 
+//   // ✅ Open Clear Dues Modal
+//   const openClearModal = (payment) => {
+//     setClearingPayment(payment);
+//     setClearAmount(payment.memberId?.pendingBalance || payment.pendingBalance || '');
+//     setClearMode('Cash');
+//     setIsClearModalOpen(true);
+//   };
+
+//  const handleClearDuesSubmit = async (e) => {
+//     e.preventDefault();
+//     try {
+//       // Ensure we extract the raw string ID whether it's populated or an ObjectId
+//       const memberId = clearingPayment.memberId?._id || clearingPayment.memberId;
+      
+//       if (!memberId) {
+//         alert("Member ID is missing.");
+//         return;
+//       }
+
+//       await api.put(`/members/${memberId}/clear-dues`, {
+//         amountPaid: Number(clearAmount),
+//         paymentMode: clearMode
+//       });
+//       setIsClearModalOpen(false);
+//       fetchPayments(); // Refresh ledger list
+//     } catch (err) {
+//       console.error('Error clearing dues:', err);
+//       alert(err.response?.data?.message || 'Failed to process payment.');
+//     }
+//   };
 //   const handleDownloadInvoice = (payment) => {
 //     const user = JSON.parse(localStorage.getItem('user')) || {};
 //     const gymName = user?.gymName || user?.data?.gymName || 'Gym Invoice';
@@ -230,6 +266,17 @@
 //                   </td>
                   
 //                   <td className="py-3 px-3 whitespace-nowrap text-center space-x-2">
+//                     {/* ✅ CLEAR DUES ACTION BUTTON */}
+//                     {payment.pendingBalance > 0 && (
+//                       <button 
+//                         onClick={() => openClearModal(payment)}
+//                         className="text-xs bg-red-600 text-white hover:bg-red-700 px-2.5 py-1 rounded-md font-bold transition inline-block mr-1"
+//                         title="Clear Dues"
+//                       >
+//                         Clear Dues
+//                       </button>
+//                     )}
+
 //                     <button 
 //                       onClick={() => handleDownloadInvoice(payment)} 
 //                       className="text-green-600 hover:bg-green-50 p-1.5 rounded-md transition border border-transparent hover:border-green-200 inline-block" 
@@ -323,12 +370,70 @@
 //           </div>
 //         </div>
 //       )}
+
+//       {/* ✅ CLEAR DUES MODAL */}
+//       {isClearModalOpen && clearingPayment && (
+//         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+//           <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+//             <h3 className="text-lg font-bold text-gray-800 mb-1">Clear Pending Dues</h3>
+//             <p className="text-xs text-gray-500 mb-4">Member: {clearingPayment.memberId?.name}</p>
+            
+//             <form onSubmit={handleClearDuesSubmit} className="space-y-4">
+//               <div className="bg-red-50 p-3 rounded-md border border-red-100 text-xs text-red-700 font-semibold">
+//                 Total Outstanding Balance: ₹{clearingPayment.pendingBalance}
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-semibold text-gray-700 mb-1">Collection Amount (₹)</label>
+//                 <input 
+//                   type="number" 
+//                   value={clearAmount} 
+//                   onChange={(e) => setClearAmount(e.target.value)} 
+//                   className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 text-sm"
+//                   required
+//                   min="1"
+//                   max={clearingPayment.pendingBalance}
+//                 />
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-semibold text-gray-700 mb-1">Payment Mode</label>
+//                 <select 
+//                   value={clearMode} 
+//                   onChange={(e) => setClearMode(e.target.value)} 
+//                   className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+//                 >
+//                   <option value="Cash">Cash</option>
+//                   <option value="UPI">UPI</option>
+//                   <option value="Card">Card</option>
+//                   <option value="Net Banking">Net Banking</option>
+//                 </select>
+//               </div>
+
+//               <div className="flex gap-3 justify-end mt-6">
+//                 <button 
+//                   type="button" 
+//                   onClick={() => setIsClearModalOpen(false)} 
+//                   className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition"
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button 
+//                   type="submit" 
+//                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition"
+//                 >
+//                   Confirm Payment
+//                 </button>
+//               </div>
+//             </form>
+//           </div>
+//         </div>
+//       )}
 //     </div>
 //   );
 // };
 
 // export default PaymentsList;
-
 
 
 
@@ -363,7 +468,6 @@ const PaymentsList = () => {
   const [clearAmount, setClearAmount] = useState('');
   const [clearMode, setClearMode] = useState('Cash');
 
-  // ✅ BULLETPROOF GYM ID EXTRACTOR FOR STAFF
   const getOwnerGymId = () => {
     const rawStorage = localStorage.getItem('user');
     const storedUser = rawStorage && rawStorage !== 'undefined' ? JSON.parse(rawStorage) : {};
@@ -433,18 +537,18 @@ const PaymentsList = () => {
     }
   };
 
-  // ✅ Open Clear Dues Modal
   const openClearModal = (payment) => {
     setClearingPayment(payment);
-    setClearAmount(payment.memberId?.pendingBalance || payment.pendingBalance || '');
+    // Use the unified logic for extracting balance
+    const balance = payment.memberId?.pendingBalance || payment.pendingBalance || '';
+    setClearAmount(balance);
     setClearMode('Cash');
     setIsClearModalOpen(true);
   };
 
- const handleClearDuesSubmit = async (e) => {
+  const handleClearDuesSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Ensure we extract the raw string ID whether it's populated or an ObjectId
       const memberId = clearingPayment.memberId?._id || clearingPayment.memberId;
       
       if (!memberId) {
@@ -452,17 +556,22 @@ const PaymentsList = () => {
         return;
       }
 
+      const gymId = getOwnerGymId();
+
       await api.put(`/members/${memberId}/clear-dues`, {
         amountPaid: Number(clearAmount),
-        paymentMode: clearMode
+        amount: Number(clearAmount), // Sent to cover both variable naming conventions
+        paymentMode: clearMode,
+        gymId: gymId // Sent to pass backend multi-tenant authorization
       });
       setIsClearModalOpen(false);
-      fetchPayments(); // Refresh ledger list
+      fetchPayments(); 
     } catch (err) {
       console.error('Error clearing dues:', err);
       alert(err.response?.data?.message || 'Failed to process payment.');
     }
   };
+
   const handleDownloadInvoice = (payment) => {
     const user = JSON.parse(localStorage.getItem('user')) || {};
     const gymName = user?.gymName || user?.data?.gymName || 'Gym Invoice';
@@ -477,12 +586,13 @@ const PaymentsList = () => {
     const name = p.memberId?.name || '';
     const mobile = p.memberId?.mobile || '';
     const plan = p.planName || p.memberId?.planName || '';
+    const dueAmount = p.pendingBalance || p.memberId?.pendingBalance || 0;
     
     const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           mobile.includes(searchTerm) || 
                           plan.toLowerCase().includes(searchTerm.toLowerCase());
                           
-    const matchesDueFilter = showOnlyDues ? (p.pendingBalance > 0) : true;
+    const matchesDueFilter = showOnlyDues ? (dueAmount > 0) : true;
 
     return matchesSearch && matchesDueFilter;
   });
@@ -547,7 +657,11 @@ const PaymentsList = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredPayments.map((payment) => (
+              {filteredPayments.map((payment) => {
+                // Unified check for where the due amount is stored in the JSON object
+                const dueAmount = payment.pendingBalance || payment.memberId?.pendingBalance || 0;
+                
+                return (
                 <tr key={payment._id} className="hover:bg-gray-50 transition">
                   
                   <td className="py-3 px-3 whitespace-nowrap">
@@ -584,9 +698,9 @@ const PaymentsList = () => {
                   </td>
 
                   <td className="py-3 px-3 whitespace-nowrap text-sm">
-                    {payment.pendingBalance > 0 ? (
+                    {dueAmount > 0 ? (
                       <span className="font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md border border-red-100">
-                        ₹{payment.pendingBalance}
+                        ₹{dueAmount}
                       </span>
                     ) : (
                       <span className="font-semibold text-gray-400">₹0</span>
@@ -594,7 +708,7 @@ const PaymentsList = () => {
                   </td>
 
                   <td className="py-3 px-3 whitespace-nowrap text-gray-700 text-xs font-medium">
-                    {payment.pendingBalance > 0 && payment.pendingDueDate 
+                    {dueAmount > 0 && payment.pendingDueDate 
                       ? <span className="text-red-600 font-bold">{new Date(payment.pendingDueDate).toLocaleDateString('en-GB')}</span> 
                       : <span className="text-gray-400">-</span>
                     }
@@ -605,8 +719,7 @@ const PaymentsList = () => {
                   </td>
                   
                   <td className="py-3 px-3 whitespace-nowrap text-center space-x-2">
-                    {/* ✅ CLEAR DUES ACTION BUTTON */}
-                    {payment.pendingBalance > 0 && (
+                    {dueAmount > 0 && (
                       <button 
                         onClick={() => openClearModal(payment)}
                         className="text-xs bg-red-600 text-white hover:bg-red-700 px-2.5 py-1 rounded-md font-bold transition inline-block mr-1"
@@ -639,7 +752,7 @@ const PaymentsList = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>
@@ -710,7 +823,7 @@ const PaymentsList = () => {
         </div>
       )}
 
-      {/* ✅ CLEAR DUES MODAL */}
+      {/* CLEAR DUES MODAL */}
       {isClearModalOpen && clearingPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
@@ -719,7 +832,7 @@ const PaymentsList = () => {
             
             <form onSubmit={handleClearDuesSubmit} className="space-y-4">
               <div className="bg-red-50 p-3 rounded-md border border-red-100 text-xs text-red-700 font-semibold">
-                Total Outstanding Balance: ₹{clearingPayment.pendingBalance}
+                Total Outstanding Balance: ₹{clearingPayment.memberId?.pendingBalance || clearingPayment.pendingBalance}
               </div>
 
               <div>
@@ -731,7 +844,7 @@ const PaymentsList = () => {
                   className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 text-sm"
                   required
                   min="1"
-                  max={clearingPayment.pendingBalance}
+                  max={clearingPayment.memberId?.pendingBalance || clearingPayment.pendingBalance}
                 />
               </div>
 

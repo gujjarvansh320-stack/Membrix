@@ -1,7 +1,8 @@
 // // src/components/AddMemberModal.jsx
 // import { useState, useContext, useRef, useCallback, useEffect } from "react";
-// import { X, UploadCloud, Camera, Tag } from "lucide-react";
+// import { X, UploadCloud, Camera, Tag, Smartphone, RefreshCw } from "lucide-react";
 // import Webcam from "react-webcam";
+// import { QRCodeSVG } from "qrcode.react";
 // import api from "../api/axios";
 // import { AuthContext } from "../context/AuthContext";
 
@@ -20,6 +21,7 @@
 //     expiryDate: "",
 //     amountPaid: "",
 //     photo: null,
+//     photoUrl: "", // ✅ ADDED: To store the URL if taken via phone
 //     dueDate: "",
 //     paymentMode: "Cash",
 //   });
@@ -30,6 +32,11 @@
 //   const [isCameraOpen, setIsCameraOpen] = useState(false);
 //   const [photoPreview, setPhotoPreview] = useState(null);
 
+//   // ✅ NEW: Phone Sync States
+//   const [isQrOpen, setIsQrOpen] = useState(false);
+//   const [syncSessionId, setSyncSessionId] = useState("");
+//   const [isPolling, setIsPolling] = useState(false);
+
 //   // Coupon & Pricing States
 //   const [couponCode, setCouponCode] = useState("");
 //   const [couponMessage, setCouponMessage] = useState({ text: "", type: "" });
@@ -37,7 +44,7 @@
 //   const [discountAmount, setDiscountAmount] = useState(0);
 //   const [selectedPlanName, setSelectedPlanName] = useState("Custom Plan");
 
-//   // ✅ BULLETPROOF GYM ID EXTRACTOR FOR STAFF AND OWNERS
+//   // BULLETPROOF GYM ID EXTRACTOR FOR STAFF AND OWNERS
 //   const getOwnerGymId = () => {
 //     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 //     return (
@@ -62,6 +69,27 @@
 //       fetchPlans();
 //     }
 //   }, [isOpen, user]);
+
+//   // ✅ NEW: Polling Hook to check for phone upload
+//   useEffect(() => {
+//     let interval;
+//     if (isPolling && syncSessionId) {
+//       interval = setInterval(async () => {
+//         try {
+//           const response = await api.get(`/members/temp-photo/${syncSessionId}`);
+//           if (response.data?.uploaded) {
+//             setPhotoPreview(response.data.photoUrl);
+//             setFormData((prev) => ({ ...prev, photo: null, photoUrl: response.data.photoUrl }));
+//             setIsPolling(false);
+//             setIsQrOpen(false);
+//           }
+//         } catch (err) {
+//           console.error("Polling error:", err);
+//         }
+//       }, 2000);
+//     }
+//     return () => clearInterval(interval);
+//   }, [isPolling, syncSessionId]);
 
 //   const handlePlanChange = (e) => {
 //     const selectedPlanId = e.target.value;
@@ -148,10 +176,19 @@
 //     if (imageSrc) {
 //       setPhotoPreview(imageSrc);
 //       const file = dataURLtoFile(imageSrc, "webcam-capture.jpg");
-//       setFormData((prevData) => ({ ...prevData, photo: file }));
+//       setFormData((prevData) => ({ ...prevData, photo: file, photoUrl: "" })); // Clear URL if camera used
 //       setIsCameraOpen(false);
 //     }
 //   }, []);
+
+//   // ✅ NEW: Start Phone Sync Session
+//   const startPhoneSync = () => {
+//     const newSessionId = `gym_reg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+//     setSyncSessionId(newSessionId);
+//     setIsQrOpen(true);
+//     setIsCameraOpen(false);
+//     setIsPolling(true);
+//   };
 
 //   if (!isOpen) return null;
 
@@ -159,10 +196,12 @@
 //     setFormData({
 //       name: "", mobile: "", email: "", dob: "", gender: "",
 //       address: "", aadharNumber: "", expiryDate: "", amountPaid: "",
-//       photo: null, dueDate: "", paymentMode: "Cash",
+//       photo: null, photoUrl: "", dueDate: "", paymentMode: "Cash",
 //     });
 //     setPhotoPreview(null);
 //     setIsCameraOpen(false);
+//     setIsQrOpen(false);
+//     setIsPolling(false);
 //     setError("");
 //     setCouponCode("");
 //     setCouponMessage({ text: "", type: "" });
@@ -180,12 +219,11 @@
 //   const handleFileChange = (e) => {
 //     const file = e.target.files[0];
 //     if (file) {
-//       setFormData({ ...formData, photo: file });
+//       setFormData({ ...formData, photo: file, photoUrl: "" }); // Clear URL if file uploaded
 //       setPhotoPreview(URL.createObjectURL(file));
 //     }
 //   };
 
-//   // Live calculation of what is still owed
 //   const pendingBalance = Math.max(0, basePrice - discountAmount - Number(formData.amountPaid || 0));
 
 //   const handleSubmit = async (e) => {
@@ -193,7 +231,8 @@
 //     setLoading(true);
 //     setError("");
 
-//     if (!formData.photo) {
+//     // ✅ UPDATE: Accept either photo (File) or photoUrl (String from phone)
+//     if (!formData.photo && !formData.photoUrl) {
 //       setError("Please capture or upload a photo first.");
 //       setLoading(false);
 //       return;
@@ -212,7 +251,6 @@
 //     submitData.append("aadharNumber", formData.aadharNumber);
 //     submitData.append("expiryDate", formData.expiryDate);
 //     submitData.append("amountPaid", formData.amountPaid);
-//     submitData.append("photo", formData.photo);
 //     submitData.append("gymId", currentGymId);
 //     submitData.append("couponCode", couponCode);
 //     submitData.append("planName", selectedPlanName);
@@ -220,6 +258,13 @@
 //     submitData.append("pendingBalance", pendingBalance);
 //     submitData.append("pendingDueDate", pendingBalance > 0 ? formData.dueDate : "");
 //     submitData.append("paymentMode", formData.paymentMode);
+
+//     // ✅ UPDATE: Append the correct image format
+//     if (formData.photo) {
+//       submitData.append("photo", formData.photo);
+//     } else if (formData.photoUrl) {
+//       submitData.append("photoUrl", formData.photoUrl);
+//     }
 
 //     try {
 //       await api.post("/members/register", submitData, {
@@ -248,9 +293,23 @@
 //         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
 //           {error && <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm font-medium">{error}</div>}
 
+//           {/* ✅ UPDATED PHOTO UPLOAD SECTION */}
 //           <div className="space-y-3">
 //             <label className="block text-sm font-semibold text-gray-700">Member Photo</label>
-//             {isCameraOpen ? (
+            
+//             {isQrOpen ? (
+//               <div className="flex flex-col items-center bg-gray-50 border-2 border-dashed border-blue-400 rounded-xl p-6 text-center">
+//                 <QRCodeSVG value={`${window.location.origin}/capture/${syncSessionId}`} size={160} level="M" />
+//                 <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-blue-700">
+//                   <RefreshCw size={16} className="animate-spin" />
+//                   Waiting for photo from phone...
+//                 </div>
+//                 <p className="text-xs text-gray-500 mt-1">Scan using any phone camera to snap photo</p>
+//                 <button type="button" onClick={() => { setIsQrOpen(false); setIsPolling(false); }} className="mt-4 text-xs text-red-600 hover:underline font-semibold">
+//                   Cancel
+//                 </button>
+//               </div>
+//             ) : isCameraOpen ? (
 //               <div className="flex flex-col items-center bg-gray-900 rounded-lg overflow-hidden">
 //                 <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" className="w-full object-cover max-h-48" />
 //                 <div className="p-3 flex gap-4 w-full justify-center bg-gray-800">
@@ -261,20 +320,26 @@
 //             ) : photoPreview ? (
 //               <div className="relative border-2 border-gray-200 rounded-lg overflow-hidden flex justify-center bg-gray-50">
 //                 <img src={photoPreview} alt="Preview" className="h-48 object-cover" />
-//                 <button type="button" onClick={() => { setPhotoPreview(null); setFormData({ ...formData, photo: null }); }} className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600">
+//                 <button type="button" onClick={() => { setPhotoPreview(null); setFormData({ ...formData, photo: null, photoUrl: "" }); }} className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600">
 //                   <X size={16} />
 //                 </button>
 //               </div>
 //             ) : (
-//               <div className="grid grid-cols-2 gap-3">
+//               <div className="grid grid-cols-3 gap-3">
 //                 <div className="relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition cursor-pointer">
 //                   <UploadCloud size={24} className="text-blue-500 mb-1" />
 //                   <p className="text-xs text-gray-600 font-medium text-center">Upload File</p>
 //                   <input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
 //                 </div>
-//                 <button type="button" onClick={() => setIsCameraOpen(true)} className="flex flex-col items-center justify-center border-2 border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-blue-50 hover:border-blue-300 transition cursor-pointer text-blue-600">
+                
+//                 <button type="button" onClick={() => setIsCameraOpen(true)} className="flex flex-col items-center justify-center border-2 border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-blue-50 transition cursor-pointer text-blue-600">
 //                   <Camera size={24} className="mb-1" />
 //                   <p className="text-xs font-medium text-center">Open Camera</p>
+//                 </button>
+                
+//                 <button type="button" onClick={startPhoneSync} className="flex flex-col items-center justify-center border-2 border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-purple-50 transition cursor-pointer text-purple-600">
+//                   <Smartphone size={24} className="mb-1" />
+//                   <p className="text-xs font-medium text-center">Use Phone</p>
 //                 </button>
 //               </div>
 //             )}
@@ -402,11 +467,6 @@
 
 
 
-
-
-
-
-
 // src/components/AddMemberModal.jsx
 import { useState, useContext, useRef, useCallback, useEffect } from "react";
 import { X, UploadCloud, Camera, Tag, Smartphone, RefreshCw } from "lucide-react";
@@ -430,7 +490,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     expiryDate: "",
     amountPaid: "",
     photo: null,
-    photoUrl: "", // ✅ ADDED: To store the URL if taken via phone
+    photoUrl: "", 
     dueDate: "",
     paymentMode: "Cash",
   });
@@ -441,7 +501,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
 
-  // ✅ NEW: Phone Sync States
+  // Phone Sync States
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [syncSessionId, setSyncSessionId] = useState("");
   const [isPolling, setIsPolling] = useState(false);
@@ -479,21 +539,38 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     }
   }, [isOpen, user]);
 
-  // ✅ NEW: Polling Hook to check for phone upload
+  // ✅ FIXED: Polling Hook with Timeout and Silent 404 Handling
   useEffect(() => {
     let interval;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 150; // Automatically stop polling after 5 minutes (150 * 2s)
+
     if (isPolling && syncSessionId) {
       interval = setInterval(async () => {
+        attempts++;
+        if (attempts >= MAX_ATTEMPTS) {
+          setIsPolling(false);
+          setIsQrOpen(false);
+          setError("Phone sync timed out. Please try again.");
+          clearInterval(interval);
+          return;
+        }
+
         try {
-          const response = await api.get(`/members/temp-photo/${syncSessionId}`);
-          if (response.data?.uploaded) {
+          // Tell Axios NOT to throw an error for a 404 (Not Found yet) response
+          const response = await api.get(`/members/temp-photo/${syncSessionId}`, {
+            validateStatus: (status) => status >= 200 && status < 500
+          });
+          
+          if (response.status === 200 && response.data?.uploaded) {
             setPhotoPreview(response.data.photoUrl);
             setFormData((prev) => ({ ...prev, photo: null, photoUrl: response.data.photoUrl }));
             setIsPolling(false);
             setIsQrOpen(false);
           }
         } catch (err) {
-          console.error("Polling error:", err);
+          // Only logs actual server crashes or network disconnections now
+          console.error("Polling network error:", err);
         }
       }, 2000);
     }
@@ -585,12 +662,11 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     if (imageSrc) {
       setPhotoPreview(imageSrc);
       const file = dataURLtoFile(imageSrc, "webcam-capture.jpg");
-      setFormData((prevData) => ({ ...prevData, photo: file, photoUrl: "" })); // Clear URL if camera used
+      setFormData((prevData) => ({ ...prevData, photo: file, photoUrl: "" }));
       setIsCameraOpen(false);
     }
   }, []);
 
-  // ✅ NEW: Start Phone Sync Session
   const startPhoneSync = () => {
     const newSessionId = `gym_reg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     setSyncSessionId(newSessionId);
@@ -628,7 +704,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData({ ...formData, photo: file, photoUrl: "" }); // Clear URL if file uploaded
+      setFormData({ ...formData, photo: file, photoUrl: "" });
       setPhotoPreview(URL.createObjectURL(file));
     }
   };
@@ -640,7 +716,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setError("");
 
-    // ✅ UPDATE: Accept either photo (File) or photoUrl (String from phone)
     if (!formData.photo && !formData.photoUrl) {
       setError("Please capture or upload a photo first.");
       setLoading(false);
@@ -668,7 +743,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     submitData.append("pendingDueDate", pendingBalance > 0 ? formData.dueDate : "");
     submitData.append("paymentMode", formData.paymentMode);
 
-    // ✅ UPDATE: Append the correct image format
     if (formData.photo) {
       submitData.append("photo", formData.photo);
     } else if (formData.photoUrl) {
@@ -702,7 +776,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
           {error && <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm font-medium">{error}</div>}
 
-          {/* ✅ UPDATED PHOTO UPLOAD SECTION */}
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-700">Member Photo</label>
             
