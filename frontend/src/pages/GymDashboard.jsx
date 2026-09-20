@@ -95,9 +95,14 @@ const GymDashboard = () => {
     };
   }, [user]);
 
-  const hasAccess = useCallback(
+ const hasAccess = useCallback(
     (module) => {
-      // 🚀 1. TIER CHECK: Block advanced features if on Basic Plan
+      // 🚀 1. STAFF CHECK: If they have explicit permission, allow them in bypass the tier check
+      if (userRole !== "owner" && userRole !== "admin") {
+        return userPermissions.includes("all") || userPermissions.includes(module);
+      }
+
+      // 2. OWNER CHECK: Enforce the software plan tier for premium features
       const advanceFeatures = ["biometrics", "automations"]; // Add future advanced tab names here
       if (
         advanceFeatures.includes(module) &&
@@ -106,15 +111,10 @@ const GymDashboard = () => {
         return false;
       }
 
-      // 2. ROLE CHECK: Proceed with normal staff permissions
-      if (userRole === "owner" || userRole === "admin") return true;
-      return (
-        userPermissions.includes("all") || userPermissions.includes(module)
-      );
+      return true;
     },
-    [userRole, userPermissions, softwarePlanTier], // 👈 softwarePlanTier added to dependencies
+    [userRole, userPermissions, softwarePlanTier]
   );
-
   const getDefaultView = () => {
     if (hasAccess("dashboard")) return "dashboard";
     if (hasAccess("members")) return "members";
@@ -269,16 +269,18 @@ const GymDashboard = () => {
             </button>
           )}
 
+          {/* 🚀 MOVED BIOMETRICS HERE */}
+          {hasAccess("biometrics") && (
+            <button
+              onClick={() => setActiveView("biometrics")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeView === "biometrics" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800"}`}
+            >
+              <Fingerprint size={20} /> Biometric Attendance
+            </button>
+          )}
+
           {userRole === "owner" && (
             <>
-              {hasAccess("biometrics") && (
-                <button
-                  onClick={() => setActiveView("biometrics")}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeView === "biometrics" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800"}`}
-                >
-                  <Fingerprint size={20} /> Biometric Attendance
-                </button>
-              )}
               <button
                 onClick={() => setActiveView("staff")}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeView === "staff" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800"}`}
