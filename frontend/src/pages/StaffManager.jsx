@@ -42,6 +42,24 @@ const StaffManager = () => {
     );
   };
 
+  const getSoftwarePlanTier = () => {
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    return (
+      storedUser?.softwarePlanTier || 
+      storedUser?.data?.user?.softwarePlanTier || 
+      storedUser?.user?.softwarePlanTier || 
+      "Basic Plan"
+    );
+  };
+
+  const softwarePlanTier = getSoftwarePlanTier();
+  const displayedModules = availableModules.filter(module => {
+    if (module.id === "biometrics" && softwarePlanTier !== "Advance Plan") {
+      return false; 
+    }
+    return true; 
+  });
+
   const fetchStaff = async () => {
     try {
       const gymId = getOwnerGymId();
@@ -248,10 +266,10 @@ const StaffManager = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-100 pt-4">
+<div className="border-t border-gray-100 pt-4">
           <label className="block text-sm font-bold text-gray-800 mb-3">Feature Access (Tick to Allow)</label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {availableModules.map((module) => (
+            {displayedModules.map((module) => (
               <label key={module.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-gray-50 transition border border-transparent hover:border-gray-200">
                 <input type="checkbox" checked={permissions.includes(module.id)} onChange={() => handleTogglePermission(module.id)} className="w-4 h-4 text-blue-600 rounded cursor-pointer" />
                 <span className="text-sm font-medium text-gray-700">{module.label}</span>
@@ -384,7 +402,7 @@ const StaffManager = () => {
               <div className="border-t border-gray-100 pt-3">
                 <label className="block text-xs font-bold text-gray-800 mb-2">Update Feature Access</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {availableModules.map((module) => (
+                  {displayedModules.map((module) => (
                     <label key={module.id} className="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-gray-50 transition border border-transparent">
                       <input type="checkbox" checked={editData.permissions.includes(module.id)} onChange={() => handleTogglePermission(module.id, true)} className="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer" />
                       <span className="text-xs font-medium text-gray-700">{module.label}</span>
