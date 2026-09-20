@@ -148,7 +148,6 @@ const Home = () => {
 
   const handleTrialSubmit = (e) => {
     e.preventDefault();
-    // Replace with your actual WhatsApp business number (country code + number, no '+' sign)
     const wpNumber = "919876543210"; 
     
     const message = `Hello, I am interested in a Free Trial.%0A%0A*Name:* ${formData.name}%0A*Phone:* ${formData.phone}%0A*Business Type:* ${formData.businessType}`;
@@ -187,19 +186,46 @@ const Home = () => {
           </div>
         </header>
 
-        {/* Trusted By Local Businesses Section */}
-        <section className="border-y border-slate-200 bg-white py-12 overflow-hidden">
-          <div className="max-w-7xl mx-auto px-6 text-center">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">
-              Trusted by Local Businesses
+        {/* Flowing Marquee Trusted By Section */}
+        <section className="border-y border-slate-200 bg-white py-10 overflow-hidden relative">
+          <div className="max-w-7xl mx-auto px-6 text-center mb-6">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              Trusted by Local Businesses & Gyms
             </p>
-            {/* Flex container for logos/names. You can replace the text divs with <img src="..." className="h-10" /> later */}
-            <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
-              <div className="text-xl font-black text-slate-800 tracking-wider">IRON CORE GYM</div>
-              <div className="text-xl font-black text-slate-800 tracking-wider">VEDA HOMES</div>
-              <div className="text-xl font-black text-slate-800 tracking-wider">COACHING PORTALS</div>
-              <div className="text-xl font-black text-slate-800 tracking-wider">MERCURY DETAILERS</div>
-              <div className="text-xl font-black text-slate-800 tracking-wider">ELEVATE FITNESS</div>
+          </div>
+
+          <style>{`
+            @keyframes marquee {
+              0% { transform: translateX(0%); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
+              display: flex;
+              width: max-content;
+              animation: marquee 25s linear infinite;
+            }
+            .animate-marquee:hover {
+              animation-play-state: paused;
+            }
+          `}</style>
+
+          <div className="relative w-full overflow-hidden flex">
+            <div className="animate-marquee flex items-center gap-16 px-8">
+              {/* First set */}
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">⚡ IRON CORE GYM</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🏢 VEDA HOMES</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🎓 COACHING PORTALS</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🚗 MERCURY DETAILERS</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">💪 ELEVATE FITNESS</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🏛️ CENTRAL LIBRARY</div>
+              
+              {/* Duplicate set to ensure seamless infinite loop */}
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">⚡ IRON CORE GYM</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🏢 VEDA HOMES</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🎓 COACHING PORTALS</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🚗 MERCURY DETAILERS</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">💪 ELEVATE FITNESS</div>
+              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🏛️ CENTRAL LIBRARY</div>
             </div>
           </div>
         </section>
