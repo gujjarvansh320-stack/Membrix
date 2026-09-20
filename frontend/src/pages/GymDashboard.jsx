@@ -117,6 +117,7 @@ const GymDashboard = () => {
   );
   const getDefaultView = () => {
     if (hasAccess("dashboard")) return "dashboard";
+    if (hasAccess("biometrics")) return "biometrics"; // 👈 ADD THIS LINE
     if (hasAccess("members")) return "members";
     if (hasAccess("enquiries")) return "enquiries";
     if (hasAccess("followups")) return "followups";
