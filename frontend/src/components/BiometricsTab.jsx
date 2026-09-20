@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+import api from '../api/axios.js'; // 👈 Add this import
+
 const BiometricsTab = () => {
   const [logs, setLogs] = useState([]);
   const [syncQueue, setSyncQueue] = useState([]);
@@ -9,21 +11,19 @@ const BiometricsTab = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const gymId = user?.gymId || user?._id || user?.id;
 
-  useEffect(() => {
+useEffect(() => {
     const fetchBiometricData = async () => {
       try {
-        // 1. Fetch Today's Attendance Logs
-        const logsRes = await fetch(`http://localhost:5000/api/attendance/logs?gymId=${gymId}`);
-        if (logsRes.ok) {
-          const logsData = await logsRes.json();
-          setLogs(logsData);
+        // 1. Fetch Today's Attendance Logs using your configured Axios instance
+        const logsRes = await api.get(`/attendance/logs?gymId=${gymId}`);
+        if (logsRes.data) {
+          setLogs(logsRes.data);
         }
 
         // 2. Fetch the Hardware Sync Queue
-        const queueRes = await fetch(`http://localhost:5000/api/members/biometric/sync-queue?gymId=${gymId}`);
-        if (queueRes.ok) {
-          const queueData = await queueRes.json();
-          setSyncQueue(queueData);
+        const queueRes = await api.get(`/members/biometric/sync-queue?gymId=${gymId}`);
+        if (queueRes.data) {
+          setSyncQueue(queueRes.data);
         }
       } catch (error) {
         console.error("Error fetching biometric data:", error);
