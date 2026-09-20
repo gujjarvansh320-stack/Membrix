@@ -269,7 +269,10 @@ export const renewMember = async (req, res) => {
       id, 
       { 
         expiryDate: newExpiryDate, planName: planName || 'Custom Plan', lastPaymentType: 'Renewal', pendingBalance: newTotalDebt,
-        pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : member.pendingDueDate
+        pendingDueDate: (Number(pendingBalance) > 0 && pendingDueDate) ? new Date(pendingDueDate) : member.pendingDueDate,
+        // 🚀 ADDED: Instantly unlock on the biometric machine
+        biometricStatus: 'active',
+        biometricSyncAction: 'enable'
       }, 
       { new: true }
     );
@@ -567,5 +570,46 @@ export const checkTempPhoto = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: "Error checking temp photo status", error: error.message });
+  }
+};
+
+// ==========================================
+// BIOMETRIC HARDWARE SYNC ENDPOINTS
+// ==========================================
+
+export const getBiometricSyncQueue = async (req, res) => {
+  try {
+    const { gymId } = req.query;
+    
+    // Find members flagged for enable/disable who actually have a fingerprint ID
+    const pendingSyncs = await Member.find({ 
+      gymId, 
+      biometricSyncAction: { $in: ['enable', 'disable'] },
+      biometricId: { $ne: null } 
+    }).select('biometricId biometricSyncAction name');
+
+    res.status(200).json(pendingSyncs);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching sync queue', error: error.message });
+  }
+};
+
+export const clearBiometricSyncStatus = async (req, res) => {
+  try {
+    const { gymId, memberIds } = req.body; 
+    // memberIds should be an array of the MongoDB _ids that were successfully synced
+
+    if (!memberIds || !memberIds.length) {
+      return res.status(400).json({ message: 'No members provided' });
+    }
+
+    await Member.updateMany(
+      { _id: { $in: memberIds }, gymId },
+      { $set: { biometricSyncAction: 'none' } } // Clear them from the queue
+    );
+
+    res.status(200).json({ message: 'Sync queue cleared for processed members' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating sync status', error: error.message });
   }
 };

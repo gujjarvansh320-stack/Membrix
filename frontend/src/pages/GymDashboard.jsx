@@ -36,6 +36,7 @@ import TransferMembership from "./TransferMembership.jsx";
 import FollowUps from "./FollowUps.jsx";
 import StaffManager from "./StaffManager.jsx";
 import api from "../api/axios.js";
+import BiometricsTab from '../components/BiometricsTab';
 
 const GymDashboard = () => {
   const { user, logoutUser } = useContext(AuthContext);
@@ -594,10 +595,8 @@ const GymDashboard = () => {
           ) : activeView === "settings" && userRole === "owner" ? (
             <SettingsTab />
           ) : activeView === "biometrics" && hasAccess("biometrics") ? (
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center h-64">
-              <Fingerprint size={48} className="text-blue-500 mb-4" />
-              <h2 className="text-xl font-bold text-gray-800">Biometric Sync Active</h2>
-              <p className="text-gray-500 mt-2">Connect your ZKTeco/eSSL machine via the local bridge script.</p>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-full">
+              <BiometricsTab />
             </div>
           ) : (
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
