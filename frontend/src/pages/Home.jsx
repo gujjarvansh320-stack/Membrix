@@ -205,11 +205,11 @@ import Footer from '../components/Footer.jsx';
 
 const trustedGyms = [
   { name: "IRON CORE GYM", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/iron-core-logo.png" },
-  { name: "VEDA HOMES", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/veda-homes-logo.png" },
-  { name: "COACHING PORTALS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/coaching-logo.png" },
-  { name: "MERCURY DETAILERS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/mercury-logo.png" },
+  { name: "TARA GYM", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/tara-gym-logo.png" },
+  { name: "ALPHA FITNESS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/coaching-logo.png" },
+  { name: "CLASSIC FITNESS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/mercury-logo.png" },
   { name: "ELEVATE FITNESS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/elevate-logo.png" },
-  { name: "CENTRAL LIBRARY", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/library-logo.png" },
+  { name: "7 TO 9 FITNESS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/library-logo.png" },
 ];
 
 const faqs = [
