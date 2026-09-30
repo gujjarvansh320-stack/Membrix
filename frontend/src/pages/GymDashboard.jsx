@@ -17,6 +17,8 @@ import {
   UserPlus,
   ArrowRight,
   Fingerprint,
+  Menu, // Added
+  X,    // Added
 } from "lucide-react";
 import {
   BarChart,
@@ -126,6 +128,7 @@ const GymDashboard = () => {
 
   const [activeView, setActiveView] = useState(getDefaultView());
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Added for mobile menu
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [dateFilter, setDateFilter] = useState("this_month");
@@ -194,7 +197,25 @@ const GymDashboard = () => {
         }}
       />
 
-      <aside className="w-64 bg-slate-900 text-white flex flex-col">
+      {/* Mobile Overlay Background */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      }`}>
+        {/* Mobile Close Button */}
+        <button 
+          onClick={() => setIsSidebarOpen(false)} 
+          className="absolute top-4 right-4 md:hidden text-slate-400 hover:text-white"
+        >
+          <X size={24} />
+        </button>
+
         <div className="p-6 flex flex-col items-center justify-center text-center gap-4 border-b border-slate-800">
           {displayLogo ? (
             <img
@@ -309,9 +330,17 @@ const GymDashboard = () => {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm border-b px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">
-            {activeView === "dashboard"
+        <header className="bg-white shadow-sm border-b px-4 md:px-8 py-4 flex justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Hamburger Button (Visible only on mobile) */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden p-1 text-gray-600 hover:text-blue-600 focus:outline-none"
+            >
+              <Menu size={28} />
+            </button>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800 truncate">
+              {activeView === "dashboard"
               ? "Dashboard Overview"
               : activeView === "members"
                 ? "Member Directory"
@@ -329,6 +358,7 @@ const GymDashboard = () => {
                             ? "Biometric Attendance & Logs"
                             : "Settings"}
           </h1>
+          </div> {/* 👈 ADD THIS CLOSING DIV HERE */}
           <div className="flex items-center gap-4">
             {userRole !== "trainer" && (
               <button
