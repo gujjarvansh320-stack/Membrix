@@ -266,7 +266,7 @@ const Home = () => {
         <section className="border-y border-slate-200 bg-white py-10 overflow-hidden relative">
           <div className="max-w-7xl mx-auto px-6 text-center mb-8">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Trusted by Gyms
+              Trusted by the Leaders in Fitness & Wellness
             </p>
           </div>
           <style>{`
