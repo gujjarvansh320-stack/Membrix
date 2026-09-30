@@ -330,45 +330,51 @@ const GymDashboard = () => {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm border-b px-4 md:px-8 py-4 flex justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            {/* Hamburger Button (Visible only on mobile) */}
+<header className="bg-white shadow-sm border-b px-4 md:px-8 py-4 flex justify-between items-center gap-2 md:gap-4">
+          {/* Added flex-1 and min-w-0 so the text can properly truncate without pushing other elements */}
+          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+            {/* Added shrink-0 so the button never gets squished */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-1 text-gray-600 hover:text-blue-600 focus:outline-none"
+              className="md:hidden p-1 text-gray-600 hover:text-blue-600 focus:outline-none shrink-0"
             >
               <Menu size={28} />
             </button>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800 truncate">
+            <h1 className="text-lg md:text-2xl font-bold text-gray-800 truncate">
               {activeView === "dashboard"
-              ? "Dashboard Overview"
-              : activeView === "members"
+                ? "Dashboard Overview"
+                : activeView === "members"
                 ? "Member Directory"
                 : activeView === "enquiries"
-                  ? "Enquiries & Trials"
-                  : activeView === "followups"
-                    ? "Follow-Up Tasks"
-                    : activeView === "payments"
-                      ? "Accounting & Payments"
-                      : activeView === "transfer"
-                        ? "Transfer Membership"
-                        : activeView === "staff"
-                          ? "Staff Management"
-                          : activeView === "biometrics" // 👈 Add this check
-                            ? "Biometric Attendance & Logs"
-                            : "Settings"}
-          </h1>
-          </div> {/* 👈 ADD THIS CLOSING DIV HERE */}
-          <div className="flex items-center gap-4">
+                ? "Enquiries & Trials"
+                : activeView === "followups"
+                ? "Follow-Up Tasks"
+                : activeView === "payments"
+                ? "Accounting & Payments"
+                : activeView === "transfer"
+                ? "Transfer Membership"
+                : activeView === "staff"
+                ? "Staff Management"
+                : activeView === "biometrics"
+                ? "Biometric Attendance & Logs"
+                : "Settings"}
+            </h1>
+          </div> 
+
+          {/* Added shrink-0 to prevent the action buttons from wrapping or squishing */}
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
             {userRole !== "trainer" && (
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition shadow-sm"
+                className="flex items-center gap-1 md:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg font-medium text-sm transition shadow-sm"
               >
-                <PlusCircle size={18} /> Add Member
+                <PlusCircle size={18} /> 
+                {/* Hides the "Add Member" text on very small screens, showing only the + icon */}
+                <span className="hidden sm:inline">Add Member</span>
               </button>
             )}
-            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold capitalize">
+            {/* Hides the profile badge on very small screens to save space */}
+            <div className="hidden sm:block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold capitalize">
               {userRole} Profile
             </div>
           </div>
