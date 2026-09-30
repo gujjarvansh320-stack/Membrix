@@ -1,9 +1,20 @@
 // import { useState } from 'react';
-// import { ChevronRight, Send } from 'lucide-react';
+// import { ChevronRight, Send, Image as ImageIcon } from 'lucide-react';
 
 // // Import shared components
 // import Navbar from '../components/Navbar.jsx';
 // import Footer from '../components/Footer.jsx';
+
+// // Define your gym names and logo paths here. 
+// // Place images in the /public folder (e.g., /public/logos/iron-core.png)
+// const trustedGyms = [
+//   { name: "IRON CORE GYM", logo: "/logos/iron-core.png" },
+//   { name: "VEDA HOMES", logo: "/logos/veda-homes.png" },
+//   { name: "COACHING PORTALS", logo: "/logos/coaching.png" },
+//   { name: "MERCURY DETAILERS", logo: "/logos/mercury.png" },
+//   { name: "ELEVATE FITNESS", logo: "/logos/elevate.png" },
+//   { name: "CENTRAL LIBRARY", logo: "/logos/library.png" },
+// ];
 
 // const Home = () => {
 //   const [formData, setFormData] = useState({
@@ -52,6 +63,58 @@
 //             </a>
 //           </div>
 //         </header>
+
+//         {/* Flowing Marquee Trusted By Section */}
+//         <section className="border-y border-slate-200 bg-white py-10 overflow-hidden relative">
+//           <div className="max-w-7xl mx-auto px-6 text-center mb-8">
+//             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+//               Trusted by Local Businesses & Gyms
+//             </p>
+//           </div>
+
+//           <style>{`
+//             @keyframes marquee {
+//               0% { transform: translateX(0%); }
+//               100% { transform: translateX(-50%); }
+//             }
+//             .animate-marquee {
+//               display: flex;
+//               width: max-content;
+//               animation: marquee 30s linear infinite;
+//             }
+//             .animate-marquee:hover {
+//               animation-play-state: paused;
+//             }
+//           `}</style>
+
+//           <div className="relative w-full overflow-hidden flex">
+//             <div className="animate-marquee flex items-center gap-16 px-8">
+//               {/* Combine the array with itself to loop seamlessly */}
+//               {[...trustedGyms, ...trustedGyms].map((gym, index) => (
+//                 <div key={index} className="flex items-center gap-4 min-w-max group cursor-default">
+//                   {/* Logo Container */}
+//                   <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-full flex items-center justify-center overflow-hidden shadow-sm transition-transform group-hover:scale-110">
+//                     <img 
+//                       src={gym.logo} 
+//                       alt={`${gym.name} logo`} 
+//                       className="w-full h-full object-cover"
+//                       // Fallback icon if the image path is broken/missing
+//                       onError={(e) => {
+//                         e.target.style.display = 'none';
+//                         e.target.nextSibling.style.display = 'block';
+//                       }}
+//                     />
+//                     <ImageIcon className="hidden text-slate-400" size={20} />
+//                   </div>
+//                   {/* Gym Name */}
+//                   <div className="text-xl font-black text-slate-700 tracking-wider">
+//                     {gym.name}
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         </section>
 
 //         {/* WhatsApp Free Trial Section */}
 //         <section id="free-trial" className="bg-slate-900 py-24 px-6 text-white border-t border-slate-800">
@@ -132,12 +195,24 @@
 
 
 
+
+
 import { useState } from 'react';
-import { ChevronRight, Send } from 'lucide-react';
+import { ChevronRight, Send, Image as ImageIcon } from 'lucide-react';
 
 // Import shared components
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
+
+// ✅ Paste your Cloudinary image URLs here
+const trustedGyms = [
+  { name: "IRON CORE GYM", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/iron-core-logo.png" },
+  { name: "Tara Gym", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/veda-homes-logo.png" },
+  { name: "Fit Pilot Gym", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/coaching-logo.png" },
+  { name: "Classic Gym", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/mercury-logo.png" },
+  { name: "ELEVATE FITNESS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/elevate-logo.png" },
+  { name: "7 TO 9 Fitness Gym", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/library-logo.png" },
+];
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -148,6 +223,7 @@ const Home = () => {
 
   const handleTrialSubmit = (e) => {
     e.preventDefault();
+    // Replace with your actual WhatsApp business number (country code + number, no '+' sign)
     const wpNumber = "919876543210"; 
     
     const message = `Hello, I am interested in a Free Trial.%0A%0A*Name:* ${formData.name}%0A*Phone:* ${formData.phone}%0A*Business Type:* ${formData.businessType}`;
@@ -188,7 +264,7 @@ const Home = () => {
 
         {/* Flowing Marquee Trusted By Section */}
         <section className="border-y border-slate-200 bg-white py-10 overflow-hidden relative">
-          <div className="max-w-7xl mx-auto px-6 text-center mb-6">
+          <div className="max-w-7xl mx-auto px-6 text-center mb-8">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
               Trusted by Local Businesses & Gyms
             </p>
@@ -202,7 +278,7 @@ const Home = () => {
             .animate-marquee {
               display: flex;
               width: max-content;
-              animation: marquee 25s linear infinite;
+              animation: marquee 30s linear infinite;
             }
             .animate-marquee:hover {
               animation-play-state: paused;
@@ -211,21 +287,29 @@ const Home = () => {
 
           <div className="relative w-full overflow-hidden flex">
             <div className="animate-marquee flex items-center gap-16 px-8">
-              {/* First set */}
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">⚡ IRON CORE GYM</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🏢 VEDA HOMES</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🎓 COACHING PORTALS</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🚗 MERCURY DETAILERS</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">💪 ELEVATE FITNESS</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🏛️ CENTRAL LIBRARY</div>
-              
-              {/* Duplicate set to ensure seamless infinite loop */}
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">⚡ IRON CORE GYM</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🏢 VEDA HOMES</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🎓 COACHING PORTALS</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🚗 MERCURY DETAILERS</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">💪 ELEVATE FITNESS</div>
-              <div className="text-xl font-black text-slate-700 tracking-wider flex items-center gap-2">🏛️ CENTRAL LIBRARY</div>
+              {/* Combine the array with itself to loop seamlessly */}
+              {[...trustedGyms, ...trustedGyms].map((gym, index) => (
+                <div key={index} className="flex items-center gap-4 min-w-max group cursor-default">
+                  {/* Logo Container */}
+                  <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-full flex items-center justify-center overflow-hidden shadow-sm transition-transform group-hover:scale-110">
+                    <img 
+                      src={gym.logo} 
+                      alt={`${gym.name} logo`} 
+                      className="w-full h-full object-cover"
+                      // Fallback icon if the Cloudinary image path is broken/missing
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                    <ImageIcon className="hidden text-slate-400" size={20} />
+                  </div>
+                  {/* Gym Name */}
+                  <div className="text-xl font-black text-slate-700 tracking-wider">
+                    {gym.name}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
