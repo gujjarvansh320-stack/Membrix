@@ -368,7 +368,7 @@ const Footer = () => {
             </li>
             <li className="flex items-start gap-3">
               <Mail size={18} className="text-blue-500 shrink-0 mt-0.5" />
-              <a href="mailto:support@membrix.com" className="hover:text-blue-400 transition-colors">support@membrix.com</a>
+              <a href="mailto:membrix.in@gmail.com" className="hover:text-blue-400 transition-colors">membrix.in@gmail.com</a>
             </li>
             <li className="flex items-start gap-3">
               <MapPin size={18} className="text-blue-500 shrink-0 mt-0.5" />
