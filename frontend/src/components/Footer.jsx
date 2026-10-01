@@ -308,30 +308,29 @@ const Footer = () => {
         {/* Brand & Bio */}
         <div>
           <Link to="/" className="flex items-center gap-2 text-2xl font-extrabold text-white mb-6 tracking-tight">
-            <Dumbbell className="text-blue-500" size={28} />
             Membrix
           </Link>
           <p className="text-sm leading-relaxed mb-6 text-slate-400">
             Smart management workspaces for modern member-based businesses. Automate renewals, integrate biometrics, and scale effortlessly.
           </p>
           <div className="flex gap-4">
-            <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-blue-600 hover:text-white transition-colors">
+            {/* <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-blue-600 hover:text-white transition-colors">
               <TwitterIcon size={18} />
-            </a>
-            <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-blue-600 hover:text-white transition-colors">
+            </a> */}
+            {/* <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-blue-600 hover:text-white transition-colors">
               <FacebookIcon size={18} />
-            </a>
+            </a> */}
             <a 
-              href="https://www.instagram.com/your_actual_username/" 
+              href="https://www.instagram.com/membrix.in/" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="p-2 bg-slate-900 rounded-lg hover:bg-pink-600 hover:text-white transition-colors"
             >
               <InstagramIcon size={18} />
             </a>
-            <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-blue-600 hover:text-white transition-colors">
+            {/* <a href="#" className="p-2 bg-slate-900 rounded-lg hover:bg-blue-600 hover:text-white transition-colors">
               <LinkedinIcon size={18} />
-            </a>
+            </a> */}
           </div>
         </div>
 
