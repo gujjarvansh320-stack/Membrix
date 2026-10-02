@@ -18,7 +18,7 @@ import {
   ArrowRight,
   Fingerprint,
   Menu, // Added
-  X,    // Added
+  X, // Added
 } from "lucide-react";
 import {
   BarChart,
@@ -38,7 +38,7 @@ import TransferMembership from "./TransferMembership.jsx";
 import FollowUps from "./FollowUps.jsx";
 import StaffManager from "./StaffManager.jsx";
 import api from "../api/axios.js";
-import BiometricsTab from '../components/BiometricsTab';
+import BiometricsTab from "../components/BiometricsTab";
 
 const GymDashboard = () => {
   const { user, logoutUser } = useContext(AuthContext);
@@ -97,11 +97,13 @@ const GymDashboard = () => {
     };
   }, [user]);
 
- const hasAccess = useCallback(
+  const hasAccess = useCallback(
     (module) => {
       // 🚀 1. STAFF CHECK: If they have explicit permission, allow them in bypass the tier check
       if (userRole !== "owner" && userRole !== "admin") {
-        return userPermissions.includes("all") || userPermissions.includes(module);
+        return (
+          userPermissions.includes("all") || userPermissions.includes(module)
+        );
       }
 
       // 2. OWNER CHECK: Enforce the software plan tier for premium features
@@ -115,7 +117,7 @@ const GymDashboard = () => {
 
       return true;
     },
-    [userRole, userPermissions, softwarePlanTier]
+    [userRole, userPermissions, softwarePlanTier],
   );
   const getDefaultView = () => {
     if (hasAccess("dashboard")) return "dashboard";
@@ -199,18 +201,20 @@ const GymDashboard = () => {
 
       {/* Mobile Overlay Background */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-30 bg-black/50 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      }`}>
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         {/* Mobile Close Button */}
-        <button 
-          onClick={() => setIsSidebarOpen(false)} 
+        <button
+          onClick={() => setIsSidebarOpen(false)}
           className="absolute top-4 right-4 md:hidden text-slate-400 hover:text-white"
         >
           <X size={24} />
@@ -330,7 +334,7 @@ const GymDashboard = () => {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
-<header className="bg-white shadow-sm border-b px-4 md:px-8 py-4 flex justify-between items-center gap-2 md:gap-4">
+        <header className="bg-white shadow-sm border-b px-4 md:px-8 py-4 flex justify-between items-center gap-2 md:gap-4">
           {/* Added flex-1 and min-w-0 so the text can properly truncate without pushing other elements */}
           <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
             {/* Added shrink-0 so the button never gets squished */}
@@ -344,22 +348,22 @@ const GymDashboard = () => {
               {activeView === "dashboard"
                 ? "Dashboard Overview"
                 : activeView === "members"
-                ? "Member Directory"
-                : activeView === "enquiries"
-                ? "Enquiries & Trials"
-                : activeView === "followups"
-                ? "Follow-Up Tasks"
-                : activeView === "payments"
-                ? "Accounting & Payments"
-                : activeView === "transfer"
-                ? "Transfer Membership"
-                : activeView === "staff"
-                ? "Staff Management"
-                : activeView === "biometrics"
-                ? "Biometric Attendance & Logs"
-                : "Settings"}
+                  ? "Member Directory"
+                  : activeView === "enquiries"
+                    ? "Enquiries & Trials"
+                    : activeView === "followups"
+                      ? "Follow-Up Tasks"
+                      : activeView === "payments"
+                        ? "Accounting & Payments"
+                        : activeView === "transfer"
+                          ? "Transfer Membership"
+                          : activeView === "staff"
+                            ? "Staff Management"
+                            : activeView === "biometrics"
+                              ? "Biometric Attendance & Logs"
+                              : "Settings"}
             </h1>
-          </div> 
+          </div>
 
           {/* Added shrink-0 to prevent the action buttons from wrapping or squishing */}
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -368,7 +372,7 @@ const GymDashboard = () => {
                 onClick={() => setIsModalOpen(true)}
                 className="flex items-center gap-1 md:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg font-medium text-sm transition shadow-sm"
               >
-                <PlusCircle size={18} /> 
+                <PlusCircle size={18} />
                 {/* Hides the "Add Member" text on very small screens, showing only the + icon */}
                 <span className="hidden sm:inline">Add Member</span>
               </button>
@@ -384,11 +388,11 @@ const GymDashboard = () => {
           {activeView === "dashboard" && hasAccess("dashboard") ? (
             <>
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-gray-700">
+                <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto overflow-hidden">
+                  <span className="text-sm font-bold text-gray-700 shrink-0">
                     Timeframe Filter:
                   </span>
-                  <div className="flex bg-gray-100 p-1 rounded-lg">
+                  <div className="flex bg-gray-100 p-1 rounded-lg overflow-x-auto w-full md:w-auto">
                     {[
                       { id: "today", label: "Today" },
                       { id: "this_month", label: "This Month" },
@@ -399,7 +403,7 @@ const GymDashboard = () => {
                       <button
                         key={tab.id}
                         onClick={() => setDateFilter(tab.id)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${dateFilter === tab.id ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                        className={`whitespace-nowrap shrink-0 px-3 py-1.5 rounded-md text-xs font-semibold transition ${dateFilter === tab.id ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
                       >
                         {tab.label}
                       </button>
