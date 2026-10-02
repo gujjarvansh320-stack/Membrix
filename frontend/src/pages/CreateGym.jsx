@@ -1,12 +1,132 @@
+// // src/pages/CreateGym.jsx
+// import { useState } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import api from '../api/axios';
+
+// const CreateGym = () => {
+//   const navigate = useNavigate();
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState('');
+  
+//   const [formData, setFormData] = useState({
+//     name: '',
+//     address: '',
+//     phone: '',
+//     email: '',
+//   });
+
+//   const handleChange = (e) => {
+//     setFormData({ ...formData, [e.target.name]: e.target.value });
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setLoading(true);
+//     setError('');
+
+//     try {
+//       // Assuming your backend route for creating a gym is POST /gyms
+//       await api.post('/gyms', formData);
+//       navigate('/dashboard'); // Go back to dashboard on success
+//     } catch (err) {
+//       setError(err.response?.data?.message || 'Failed to create gym profile');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+//       <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+//         <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Register Your Gym</h2>
+        
+//         {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">{error}</div>}
+
+//         <form onSubmit={handleSubmit} className="space-y-6">
+//           <div>
+//             <label className="block text-gray-700 font-semibold mb-2">Gym Name</label>
+//             <input 
+//               type="text" 
+//               name="name"
+//               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+//               value={formData.name}
+//               onChange={handleChange}
+//               required
+//             />
+//           </div>
+
+//           <div>
+//             <label className="block text-gray-700 font-semibold mb-2">Address</label>
+//             <input 
+//               type="text" 
+//               name="address"
+//               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+//               value={formData.address}
+//               onChange={handleChange}
+//               required
+//             />
+//           </div>
+
+//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//             <div>
+//               <label className="block text-gray-700 font-semibold mb-2">Phone Number</label>
+//               <input 
+//                 type="tel" 
+//                 name="phone"
+//                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+//                 value={formData.phone}
+//                 onChange={handleChange}
+//                 required
+//               />
+//             </div>
+            
+//             <div>
+//               <label className="block text-gray-700 font-semibold mb-2">Business Email</label>
+//               <input 
+//                 type="email" 
+//                 name="email"
+//                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+//                 value={formData.email}
+//                 onChange={handleChange}
+//                 required
+//               />
+//             </div>
+//           </div>
+
+//           <div className="pt-4">
+//             <button 
+//               type="submit" 
+//               disabled={loading}
+//               className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50"
+//             >
+//               {loading ? 'Saving Profile...' : 'Save Gym Profile'}
+//             </button>
+//           </div>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default CreateGym;
+
+
+
+
+
+
+
+
 // src/pages/CreateGym.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { toast } from 'sonner'; // 👈 Imported toast from sonner
 
 const CreateGym = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  // 👈 Removed local error state
   
   const [formData, setFormData] = useState({
     name: '',
@@ -22,14 +142,21 @@ const CreateGym = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+
+    // 👈 1. Trigger a loading toast when submission starts
+    const toastId = toast.loading('Creating gym profile...');
 
     try {
       // Assuming your backend route for creating a gym is POST /gyms
       await api.post('/gyms', formData);
-      navigate('/dashboard'); // Go back to dashboard on success
+      
+      // 👈 2. Show success toast and redirect
+      toast.success('Gym profile created successfully!', { id: toastId });
+      navigate('/dashboard'); 
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create gym profile');
+      // 👈 3. Show error toast if creation fails
+      const errorMessage = err.response?.data?.message || 'Failed to create gym profile';
+      toast.error(errorMessage, { id: toastId });
     } finally {
       setLoading(false);
     }
@@ -40,7 +167,7 @@ const CreateGym = () => {
       <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Register Your Gym</h2>
         
-        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">{error}</div>}
+        {/* 👈 Removed the inline error div entirely */}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -97,7 +224,7 @@ const CreateGym = () => {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50"
+              className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Saving Profile...' : 'Save Gym Profile'}
             </button>

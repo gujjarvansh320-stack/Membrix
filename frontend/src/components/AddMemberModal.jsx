@@ -70,7 +70,7 @@
 //     }
 //   }, [isOpen, user]);
 
-//   // ✅ FIXED: Polling Hook with Timeout and Silent 404 Handling
+//   // Polling Hook with Timeout and Silent 404 Handling
 //   useEffect(() => {
 //     let interval;
 //     let attempts = 0;
@@ -88,7 +88,6 @@
 //         }
 
 //         try {
-//           // Tell Axios NOT to throw an error for a 404 (Not Found yet) response
 //           const response = await api.get(`/members/temp-photo/${syncSessionId}`, {
 //             validateStatus: (status) => status >= 200 && status < 500
 //           });
@@ -100,7 +99,6 @@
 //             setIsQrOpen(false);
 //           }
 //         } catch (err) {
-//           // Only logs actual server crashes or network disconnections now
 //           console.error("Polling network error:", err);
 //         }
 //       }, 2000);
@@ -254,7 +252,6 @@
 //     }
 
 //     const currentGymId = getOwnerGymId();
-//     const calculatedDiscount = Math.max(0, basePrice - Number(formData.amountPaid));
 
 //     const submitData = new FormData();
 //     submitData.append("name", formData.name);
@@ -269,8 +266,11 @@
 //     submitData.append("gymId", currentGymId);
 //     submitData.append("couponCode", couponCode);
 //     submitData.append("planName", selectedPlanName);
-//     submitData.append("discountAmount", calculatedDiscount);
+    
+//     // ✅ FIXED: Strictly map the true coupon discount and pending balance
+//     submitData.append("discountAmount", discountAmount);
 //     submitData.append("pendingBalance", pendingBalance);
+    
 //     submitData.append("pendingDueDate", pendingBalance > 0 ? formData.dueDate : "");
 //     submitData.append("paymentMode", formData.paymentMode);
 
@@ -477,11 +477,6 @@
 
 
 
-
-
-
-
-
 // src/components/AddMemberModal.jsx
 import { useState, useContext, useRef, useCallback, useEffect } from "react";
 import { X, UploadCloud, Camera, Tag, Smartphone, RefreshCw } from "lucide-react";
@@ -489,6 +484,7 @@ import Webcam from "react-webcam";
 import { QRCodeSVG } from "qrcode.react";
 import api from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
+import { toast } from "sonner"; // 👈 Imported toast
 
 const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useContext(AuthContext);
@@ -512,7 +508,8 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  // 👈 Removed local error state
+
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState(null);
 
@@ -566,7 +563,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         if (attempts >= MAX_ATTEMPTS) {
           setIsPolling(false);
           setIsQrOpen(false);
-          setError("Phone sync timed out. Please try again.");
+          toast.error("Phone sync timed out. Please try again."); // 👈 Added error toast
           clearInterval(interval);
           return;
         }
@@ -581,6 +578,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
             setFormData((prev) => ({ ...prev, photo: null, photoUrl: response.data.photoUrl }));
             setIsPolling(false);
             setIsQrOpen(false);
+            toast.success("Photo synced from phone!"); // 👈 Added success toast for sync
           }
         } catch (err) {
           console.error("Polling network error:", err);
@@ -626,6 +624,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
 
   const applyCoupon = async () => {
     if (!couponCode || !basePrice) {
+      toast.warning("Please select a plan and enter a code first."); // 👈 Added warning toast
       setCouponMessage({ text: "Please select a plan and enter a code first.", type: "error" });
       return;
     }
@@ -651,8 +650,11 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         text: `Coupon applied successfully! Discount: ₹${discountSaved.toFixed(0)}`,
         type: "success",
       });
+      toast.success(`Coupon applied! Saved ₹${discountSaved.toFixed(0)}`); // 👈 Added success toast
     } catch (err) {
-      setCouponMessage({ text: err.response?.data?.message || "Invalid coupon code", type: "error" });
+      const errorMsg = err.response?.data?.message || "Invalid coupon code";
+      setCouponMessage({ text: errorMsg, type: "error" });
+      toast.error(errorMsg); // 👈 Added error toast
       setFormData((prev) => ({ ...prev, amountPaid: basePrice }));
       setDiscountAmount(0);
     }
@@ -677,6 +679,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
       const file = dataURLtoFile(imageSrc, "webcam-capture.jpg");
       setFormData((prevData) => ({ ...prevData, photo: file, photoUrl: "" }));
       setIsCameraOpen(false);
+      toast.success("Photo captured!"); // 👈 Added success toast
     }
   }, []);
 
@@ -700,7 +703,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     setIsCameraOpen(false);
     setIsQrOpen(false);
     setIsPolling(false);
-    setError("");
     setCouponCode("");
     setCouponMessage({ text: "", type: "" });
     setBasePrice(0);
@@ -727,13 +729,15 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     if (!formData.photo && !formData.photoUrl) {
-      setError("Please capture or upload a photo first.");
+      toast.error("Please capture or upload a photo first."); // 👈 Added error toast
       setLoading(false);
       return;
     }
+
+    // 👈 1. Start loading toast
+    const toastId = toast.loading("Registering member...");
 
     const currentGymId = getOwnerGymId();
 
@@ -751,7 +755,6 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
     submitData.append("couponCode", couponCode);
     submitData.append("planName", selectedPlanName);
     
-    // ✅ FIXED: Strictly map the true coupon discount and pending balance
     submitData.append("discountAmount", discountAmount);
     submitData.append("pendingBalance", pendingBalance);
     
@@ -768,11 +771,16 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
       await api.post("/members/register", submitData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      
+      // 👈 2. Fire success toast
+      toast.success(`${formData.name} registered successfully!`, { id: toastId });
+      
       handleClose();
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error("Error saving member:", err);
-      setError(err.response?.data?.message || "Failed to register member");
+      // 👈 3. Fire error toast
+      toast.error(err.response?.data?.message || "Failed to register member", { id: toastId });
     } finally {
       setLoading(false);
     }
@@ -789,7 +797,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
-          {error && <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm font-medium">{error}</div>}
+          {/* 👈 Removed inline error div completely */}
 
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-700">Member Photo</label>
@@ -945,7 +953,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
           )}
 
           <div className="pt-4 shrink-0">
-            <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 text-sm">
+            <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm">
               {loading ? "Processing..." : "Register Member"}
             </button>
           </div>
