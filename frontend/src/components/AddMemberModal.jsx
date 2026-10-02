@@ -816,7 +816,7 @@ const AddMemberModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
             ) : isCameraOpen ? (
               <div className="flex flex-col items-center bg-gray-900 rounded-lg overflow-hidden">
-                <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" className="w-full object-cover max-h-48" />
+                <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" videoConstraints={{ facingMode: "environment" }} className="w-full object-cover max-h-48" />
                 <div className="p-3 flex gap-4 w-full justify-center bg-gray-800">
                   <button type="button" onClick={capturePhoto} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-semibold text-sm transition">Snap Photo</button>
                   <button type="button" onClick={() => setIsCameraOpen(false)} className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-full font-semibold text-sm transition">Cancel</button>
