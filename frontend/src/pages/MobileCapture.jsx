@@ -1,3 +1,4 @@
+// // src/pages/MobileCapture.jsx
 // import { useState } from 'react';
 // import { useParams } from 'react-router-dom';
 // import { Camera, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
@@ -27,10 +28,13 @@
 
 //     const formData = new FormData();
 //     formData.append('photo', file);
+//     // You no longer strictly need to append sessionId here since it's in the URL, 
+//     // but it's safe to leave it.
 //     formData.append('sessionId', sessionId);
 
 //     try {
-//       await api.post('/members/temp-photo', formData, {
+//       // ✅ FIX: Added the ${sessionId} directly to the endpoint URL
+//       await api.post(`/members/temp-photo/${sessionId}`, formData, {
 //         headers: { 'Content-Type': 'multipart/form-data' },
 //       });
 //       setSuccess(true);
@@ -69,7 +73,6 @@
 //               <label className="border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-xl aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer transition bg-slate-900/50">
 //                 <Camera size={40} className="text-blue-400" />
 //                 <span className="text-sm font-medium text-slate-300">Open Phone Camera</span>
-//                 {/* capture="environment" triggers the rear camera immediately on mobile devices */}
 //                 <input 
 //                   type="file" 
 //                   accept="image/*" 
@@ -109,14 +112,12 @@
 
 
 
-
-
-
 // src/pages/MobileCapture.jsx
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Camera, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Camera, CheckCircle2, Loader2 } from 'lucide-react'; // 👈 Removed AlertCircle
 import api from '../api/axios';
+import { toast } from 'sonner'; // 👈 Imported toast
 
 const MobileCapture = () => {
   const { sessionId } = useParams();
@@ -124,36 +125,43 @@ const MobileCapture = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  // 👈 Removed local error state
 
   const handleCapture = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
       setPhotoPreview(URL.createObjectURL(selectedFile));
-      setError('');
     }
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) {
+      toast.error('Please capture a photo first.'); // 👈 Added validation toast
+      return;
+    }
+    
     setLoading(true);
-    setError('');
+    
+    // 👈 1. Trigger loading toast
+    const toastId = toast.loading('Sending photo to laptop...'); 
 
     const formData = new FormData();
     formData.append('photo', file);
-    // You no longer strictly need to append sessionId here since it's in the URL, 
-    // but it's safe to leave it.
     formData.append('sessionId', sessionId);
 
     try {
-      // ✅ FIX: Added the ${sessionId} directly to the endpoint URL
       await api.post(`/members/temp-photo/${sessionId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      
+      // 👈 2. Update to success toast
+      toast.success('Photo synced successfully!', { id: toastId }); 
       setSuccess(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to upload photo. Try again.');
+      // 👈 3. Update to error toast
+      const errorMsg = err.response?.data?.message || 'Failed to upload photo. Try again.';
+      toast.error(errorMsg, { id: toastId }); 
     } finally {
       setLoading(false);
     }
@@ -165,11 +173,7 @@ const MobileCapture = () => {
         <h2 className="text-xl font-bold mb-2">Member Photo Sync</h2>
         <p className="text-sm text-slate-400 mb-6">Take a photo to send directly to the laptop screen.</p>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded-lg text-sm text-red-200 flex items-center gap-2">
-            <AlertCircle size={16} /> {error}
-          </div>
-        )}
+        {/* 👈 Removed inline error div block */}
 
         {success ? (
           <div className="py-8 space-y-3">

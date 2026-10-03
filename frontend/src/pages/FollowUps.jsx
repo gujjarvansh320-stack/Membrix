@@ -13,8 +13,10 @@
 
 //   const fetchFollowUps = async () => {
 //     try {
-//       const user = JSON.parse(localStorage.getItem('user')) || {};
-//       const gymId = user?._id || user?.data?._id || user?.gymId;
+//       // ✅ BULLETPROOF GYM ID EXTRACTOR
+//       const storedUser = JSON.parse(localStorage.getItem('user')) || {};
+//       const gymId = storedUser?.gymId || storedUser?.data?.user?.gymId || storedUser?.user?.gymId || storedUser?._id || storedUser?.data?.user?._id || storedUser?.data?._id || '65abc123def4567890abcd12';
+      
 //       const res = await api.get(`/members/follow-ups?gymId=${gymId}`);
 //       setData(res.data);
 //     } catch (err) {
@@ -134,6 +136,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { MessageCircle, Clock, AlertCircle, UserPlus } from 'lucide-react';
+import { toast } from 'sonner'; // 👈 1. Imported toast
 
 const FollowUps = () => {
   const [data, setData] = useState({ expiringMembers: [], pendingDues: [], enquiries: [] });
@@ -153,6 +156,7 @@ const FollowUps = () => {
       setData(res.data);
     } catch (err) {
       console.error("Failed to load follow-ups", err);
+      toast.error("Failed to load follow-up tasks."); // 👈 Added error toast
     } finally {
       setLoading(false);
     }
@@ -171,6 +175,7 @@ const FollowUps = () => {
       message = `Hi ${name}, thank you for your interest in our gym! Let us know if you have any questions or if you'd like to start your membership.`;
     }
 
+    toast.success("Opening WhatsApp...", { duration: 2000 }); // 👈 Added interaction toast
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 

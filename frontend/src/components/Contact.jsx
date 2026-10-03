@@ -1,12 +1,147 @@
+// // src/pages/Contact.jsx
+// import { Link } from 'react-router-dom';
+// import { Phone, Mail, MapPin, Send } from 'lucide-react';
+
+// // Import shared Navbar and Footer components
+// import Navbar from '../components/Navbar.jsx';
+// import Footer from '../components/Footer.jsx';
+
+// const Contact = () => {
+//   return (
+//     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-200 flex flex-col">
+      
+//       <Navbar />
+
+//       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-20">
+//         <div className="text-center mb-16">
+//           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900">
+//             Get in Touch
+//           </h1>
+//           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+//             Have questions about pricing, custom integrations, or data migration? Our team is ready to help you set up your ideal workspace.
+//           </p>
+//         </div>
+
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+          
+//           {/* Contact Information */}
+//           <div className="bg-slate-900 text-white p-10 md:p-14 flex flex-col justify-center">
+//             <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
+//             <p className="text-slate-400 mb-10">
+//               Fill out the form and our team will get back to you within 24 hours. Alternatively, reach out directly using the details below.
+//             </p>
+            
+//             <div className="space-y-8">
+//               <div className="flex items-start gap-4">
+//                 <Phone className="text-blue-500 mt-1" size={24} />
+//                 <div>
+//                   <h3 className="font-semibold text-lg text-slate-200">Phone & WhatsApp</h3>
+//                   <p className="text-slate-400">+91 7404707263</p>
+//                 </div>
+//               </div>
+              
+//               <div className="flex items-start gap-4">
+//                 <Mail className="text-blue-500 mt-1" size={24} />
+//                 <div>
+//                   <h3 className="font-semibold text-lg text-slate-200">Email Address</h3>
+//                   <p className="text-slate-400">membrix.in@gmail.com</p>
+//                 </div>
+//               </div>
+              
+//               <div className="flex items-start gap-4">
+//                 <MapPin className="text-blue-500 mt-1" size={24} />
+//                 <div>
+//                   <h3 className="font-semibold text-lg text-slate-200">Headquarters</h3>
+//                   <p className="text-slate-400">Hisar 125001<br/>Haryana, India 110001</p>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* Contact Form */}
+//           <div className="p-10 md:p-14">
+//             <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//                 <div>
+//                   <label className="block text-sm font-semibold text-slate-700 mb-2">First Name</label>
+//                   <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50" placeholder="John" />
+//                 </div>
+//                 <div>
+//                   <label className="block text-sm font-semibold text-slate-700 mb-2">Last Name</label>
+//                   <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50" placeholder="Doe" />
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
+//                 <input type="email" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50" placeholder="john@business.com" />
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-semibold text-slate-700 mb-2">Business Type</label>
+//                 <select className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50">
+//                   <option>Gym / Fitness Center</option>
+//                   <option>Coaching Institute</option>
+//                   <option>Dance / Arts Academy</option>
+//                   <option>Library</option>
+//                   <option>Other</option>
+//                 </select>
+//               </div>
+
+//               <div>
+//                 <label className="block text-sm font-semibold text-slate-700 mb-2">Message</label>
+//                 <textarea rows="4" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50 resize-none" placeholder="How can we help your business grow?"></textarea>
+//               </div>
+
+//               <button className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg flex justify-center items-center gap-2">
+//                 Send Message <Send size={18} />
+//               </button>
+//             </form>
+//           </div>
+//         </div>
+//       </main>
+
+//       <Footer />
+//     </div>
+//   );
+// };
+
+// export default Contact;
+
+
+
+
+
 // src/pages/Contact.jsx
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, Send } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, Loader2 } from 'lucide-react';
+import { toast } from 'sonner'; // 👈 Imported toast
 
 // Import shared Navbar and Footer components
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 
 const Contact = () => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // 👈 1. Fire a loading toast
+    const toastId = toast.loading('Sending your message...');
+
+    // 👈 2. Simulate a network request (Replace this later with your actual API call)
+    setTimeout(() => {
+      // 👈 3. Change to success toast
+      toast.success("Message sent successfully! We'll be in touch soon.", { id: toastId });
+      
+      setLoading(false);
+      e.target.reset(); // Clear the form fields after sending
+    }, 1500);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-200 flex flex-col">
       
@@ -60,21 +195,21 @@ const Contact = () => {
 
           {/* Contact Form */}
           <div className="p-10 md:p-14">
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">First Name</label>
-                  <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50" placeholder="John" />
+                  <input required type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50" placeholder="John" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Last Name</label>
-                  <input type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50" placeholder="Doe" />
+                  <input required type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50" placeholder="Doe" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
-                <input type="email" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50" placeholder="john@business.com" />
+                <input required type="email" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50" placeholder="john@business.com" />
               </div>
 
               <div>
@@ -90,11 +225,19 @@ const Contact = () => {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Message</label>
-                <textarea rows="4" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50 resize-none" placeholder="How can we help your business grow?"></textarea>
+                <textarea required rows="4" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50 resize-none" placeholder="How can we help your business grow?"></textarea>
               </div>
 
-              <button className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg flex justify-center items-center gap-2">
-                Send Message <Send size={18} />
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>Sending... <Loader2 size={18} className="animate-spin" /></>
+                ) : (
+                  <>Send Message <Send size={18} /></>
+                )}
               </button>
             </form>
           </div>

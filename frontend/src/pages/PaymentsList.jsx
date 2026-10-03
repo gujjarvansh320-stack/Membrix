@@ -508,18 +508,28 @@ const PaymentsList = () => {
     fetchPayments();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this payment record?')) {
-      const toastId = toast.loading('Deleting payment record...'); // 👈 Added loading toast
-      try {
-        await api.delete(`/members/payments/${id}`);
-        toast.success('Payment record deleted successfully!', { id: toastId }); // 👈 Added success toast
-        fetchPayments();
-      } catch (err) {
-        console.error('Error deleting payment:', err);
-        toast.error('Failed to delete payment record.', { id: toastId }); // 👈 Added error toast
-      }
-    }
+const handleDelete = (id) => {
+    toast.error("Delete this payment record?", {
+      description: "This action cannot be undone.",
+      duration: 8000,
+      action: {
+        label: "Yes, Delete",
+        onClick: async () => {
+          const toastId = toast.loading('Deleting payment record...');
+          try {
+            await api.delete(`/members/payments/${id}`);
+            toast.success('Payment record deleted successfully!', { id: toastId });
+            fetchPayments();
+          } catch (err) {
+            console.error('Error deleting payment:', err);
+            toast.error('Failed to delete payment record.', { id: toastId });
+          }
+        },
+      },
+      cancel: {
+        label: "Cancel",
+      },
+    });
   };
 
   const openEditModal = (payment) => {
