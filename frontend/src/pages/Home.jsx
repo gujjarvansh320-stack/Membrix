@@ -9,13 +9,13 @@ import Footer from '../components/Footer.jsx';
 
 // Gym Logos for Marquee
 const trustedGyms = [
-  { name: "IRON CORE GYM", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/iron-core-logo.png" },
-  { name: "TARA GYM", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/veda-homes-logo.png" },
-  { name: "ALPHA FIT GYM", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/coaching-logo.png" },
-  { name: "7 TO 9 FITNESS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/mercury-logo.png" },
-  { name: "ELEVATE FITNESS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/elevate-logo.png" },
-  { name: "CLASSIC FITNESS", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/library-logo.png" },
-  { name: "FITNESS HUB", logo: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/library-logo.png" },
+  { name: "IRON CORE GYM", logo: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1791023853/Spartan_Iron_Core_Gym_Emblem.png" },
+  { name: "TARA GYM", logo: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1790992973/gym_saas/profile_pictures/un3ghynhkqf3w6unvfsx.jpg" },
+  { name: "ALPHA FIT GYM", logo: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1791023352/Alpha_Fit_Gym_Emblem.png" },
+  { name: "7 TO 9 FITNESS", logo: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1791023826/7_to_9_Fitness_Emblem_1.png" },
+  { name: "ELEVATE FITNESS", logo: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1791023819/Elevate_Fitness_Circular_Emblem.png" },
+  { name: "CLASSIC FITNESS", logo: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1791024261/Classic_Fitness_Gold_Emblem.png" },
+  { name: "FITNESS HUB", logo: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1791023836/Fitness_Hub_Kettlebell_Emblem.png" },
 ];
 
 // Custom Animated Counter Component for the "Stuck" value effect
@@ -60,21 +60,21 @@ const customerReviews = [
   {
     name: "Rahul Sharma",
     role: "Owner, Iron Core Gym",
-    avatar: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/avatar1.jpg",
+    avatar: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1791023853/Spartan_Iron_Core_Gym_Emblem.png",
     review: "The biometric integration completely changed how we operate. No more manual entry, and the automated WhatsApp reminders have reduced our pending payments by 80%.",
     rating: 5
   },
   {
     name: "Priya Patel",
     role: "Manager, Elevate Fitness",
-    avatar: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/avatar2.jpg",
+    avatar: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1791023819/Elevate_Fitness_Circular_Emblem.png",
     review: "Switching to this SaaS platform was the best decision for our gym. The dashboard is incredibly intuitive, and setting up custom pricing plans takes seconds.",
     rating: 5
   },
   {
     name: "Vikram Singh",
     role: "Owner, Fitness Hub",
-    avatar: "https://res.cloudinary.com/your-cloud-name/image/upload/v123456789/avatar3.jpg",
+    avatar: "https://res.cloudinary.com/kw7bcxsi/image/upload/v1791023836/Fitness_Hub_Kettlebell_Emblem.png",
     review: "This platform has made managing our gym much easier. Member management, attendance, payments, and membership tracking are all handled in one place. It saves us a lot of time every day.",
     rating: 5
   }
